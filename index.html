@@ -146,7 +146,7 @@ svg text{fill:var(--text2);font-size:10px}
 
 <script>
 'use strict';
-/* ================= GymOS v0.9 — Block 8 "Rebuild & Burn" =================
+/* ================= GymOS v1.0 — Block 8 "Rebuild & Burn" =================
    Offline-first single-file app. All data in localStorage. Export weekly!  */
 </script>
 <script>
@@ -480,14 +480,20 @@ const App = {
         <div><div class="spread small"><span>Fat</span><span>${n.f} / ${fatT} g</span></div>
           <div class="bar"><div style="width:${Math.min(100,n.f/fatT*100)}%"></div></div></div>
       </div>
-      <div class="grid2" style="margin-top:10px">
+      <div style="margin-top:10px"><input id="nut-q" placeholder="🔍 Search food… (chicken, eggs, rice)" oninput="App.nutSearch()" autocomplete="off"></div>
+      <div id="nut-results"></div>
+      <div id="nut-picked"></div>
+      ${(S.recentFoods&&S.recentFoods.length)?`<div class="small muted" style="margin-top:8px">Recent</div><div class="setchips">${S.recentFoods.map((r,i)=>`<span class="setchip" onclick="App.reAdd(${i})">+ ${esc(r.name)} ${r.grams}g</span>`).join('')}</div>`:''}
+      ${(n.items&&n.items.some(x=>x.label))?`<div class="small muted" style="margin-top:10px">Logged today</div>${n.items.map((x,i)=>x.label?`<div class="list-item"><span class="small">${esc(x.label)}${x.grams?` · ${x.grams}g`:''}</span><span class="small"><b>${x.k||0}</b> kcal · ${x.p||0}P <button class="tiny" style="margin-left:6px;padding:2px 8px" onclick="App.delFood(${i})">✕</button></span></div>`:'').join('')}`:''}
+      <details style="margin-top:8px"><summary class="small muted">Manual entry (kcal &amp; macros)</summary>
+      <div class="grid2" style="margin-top:8px">
         <input type="number" id="qa-kcal" placeholder="kcal">
         <input type="number" id="qa-pro" placeholder="protein g">
         <input type="number" id="qa-carb" placeholder="carbs g">
         <input type="number" id="qa-fat" placeholder="fat g">
       </div>
-      <button class="primary big" style="margin-top:8px" onclick="App.quickAdd()">Add to today</button>
-      <div class="small muted" style="margin-top:6px">Log per meal — any field can be left blank. Fibre target: 38g/day. Double days (Tue/Fri): real carb+protein meal between sessions.</div></div>`;
+      <button class="primary big" style="margin-top:8px" onclick="App.quickAdd()">Add manual entry</button></details>
+      <div class="small muted" style="margin-top:6px">Food values are typical estimates — weigh oils, nut butters and carbs where precision matters. Fibre target: 38g/day.</div></div>`;
 
     // weight quick log
     h += `<div class="card"><div class="spread"><h2>Body weight</h2>${wLogged?'<span class="chip good">logged ✓</span>':''}</div>
@@ -517,7 +523,7 @@ const App = {
           c=+($('qa-carb').value||0), f=+($('qa-fat').value||0);
     if(!k&&!p&&!c&&!f) return;
     const n = nut(todayStr()); n.c=n.c||0; n.f=n.f||0;
-    n.kcal+=k; n.pro+=p; n.c+=c; n.f+=f; n.items.push({t:Date.now(),k,p,c,f});
+    n.kcal+=k; n.pro+=p; n.c+=c; n.f+=f; n.items.push({t:Date.now(),label:'Manual entry',k,p,c,f});
     store.save(); toast('Added'); this.render();
   },
 
@@ -830,7 +836,7 @@ Object.assign(App, {
         Supplements: creatine 5g daily · whey to hit protein · caffeine &lt;400mg, none after 14:00 · vit D · omega-3<br><br>
         Pain rules: 0–2 continue · 3–4 modify (−20% or sub) · 5+ stop &amp; substitute<br><br>
         W5 = deload (auto-applied) · W6 = benchmarks: squat 8RM · bench 8RM · chins AMRAP · RDL 5RM · 2km row · 12′ AMRAP</div></div>
-      <div class="card"><h2>About</h2><div class="small muted">GymOS v0.9 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
+      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.0 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
     $('scr-more').innerHTML = h;
   },
 
@@ -866,6 +872,157 @@ Object.assign(App, {
 
 /* boot */
 App.go('today');
+</script>
+<script>
+'use strict';
+/* ---------- Food database: per-100g [name, kcal, protein, carbs, fat, units[[label,grams]...]] ----------
+   Typical UK/USDA-style estimates. Built around Matthew's staples. */
+const FOODS = [
+ ['Chicken breast (raw)',120,22.5,0,2.6,[['100 g',100],['1 fillet 180g',180]]],
+ ['Chicken breast (cooked)',165,31,0,3.6,[['100 g',100],['1 fillet 150g',150]]],
+ ['Chicken thigh (cooked)',209,26,0,11,[['100 g',100],['2 thighs 160g',160]]],
+ ['Beef mince 5% (raw)',122,21.4,0,4.3,[['100 g',100],['250 g',250]]],
+ ['Beef mince 20% (raw)',254,17.2,0,20,[['100 g',100],['250 g',250]]],
+ ['Sirloin steak (raw)',183,21,0,11,[['100 g',100],['1 steak 225g',225]]],
+ ['Salmon fillet (raw)',208,20,0,13,[['100 g',100],['1 fillet 125g',125]]],
+ ['Tuna (canned, drained)',116,26,0,1,[['1 can 112g',112],['100 g',100]]],
+ ['Tuna steak',108,24,0,1,[['100 g',100],['1 steak 150g',150]]],
+ ['Prawns',85,20,0,0.6,[['100 g',100],['150 g',150]]],
+ ['White fish (cod)',82,18,0,0.7,[['100 g',100],['1 fillet 140g',140]]],
+ ['Eggs',143,12.6,0.7,9.5,[['1 egg 55g',55],['2 eggs',110],['3 eggs',165]]],
+ ['Egg whites',52,11,0.7,0.2,[['100 g',100]]],
+ ['Greek yoghurt 0%',59,10,3.6,0.4,[['100 g',100],['1 pot 170g',170],['big bowl 250g',250]]],
+ ['Greek yoghurt (full fat)',97,9,3.9,5,[['100 g',100],['170 g',170]]],
+ ['Skyr',63,11,4,0.2,[['100 g',100],['1 pot 150g',150]]],
+ ['Cottage cheese',98,11,3.4,4.3,[['100 g',100],['half tub 150g',150]]],
+ ['Whey protein',380,78,6,6,[['1 scoop 30g',30],['1.5 scoops',45]]],
+ ['Milk semi-skimmed',47,3.6,4.8,1.8,[['splash 30ml',30],['glass 250ml',250]]],
+ ['Oat milk',43,1,6.6,1.5,[['splash 30ml',30],['glass 250ml',250]]],
+ ['Cheddar',416,25,0.1,35,[['slice 20g',20],['30 g',30]]],
+ ['Feta',264,14,4,21,[['30 g',30],['half block 100g',100]]],
+ ['Mozzarella',280,18,2,22,[['half ball 62g',62],['100 g',100]]],
+ ['Halloumi',321,22,2,25,[['2 slices 60g',60],['100 g',100]]],
+ ['Butter',744,0.5,0.6,82,[['1 tsp 5g',5],['1 tbsp 14g',14]]],
+ ['Olive oil',884,0,0,100,[['1 tsp 4.5g',4.5],['1 tbsp 13.5g',13.5]]],
+ ['Peanut butter',588,25,20,50,[['1 tbsp 16g',16],['big spoon 30g',30]]],
+ ['Almonds',579,21,22,50,[['handful 30g',30]]],
+ ['Walnuts',654,15,14,65,[['handful 30g',30]]],
+ ['Cashews',553,18,30,44,[['handful 30g',30]]],
+ ['Dark chocolate 85%',590,9,22,50,[['2 squares 20g',20],['4 squares 40g',40]]],
+ ['Dark chocolate 70%',546,8,34,38,[['2 squares 20g',20],['4 squares 40g',40]]],
+ ['Honey',304,0.3,82,0,[['1 tsp 7g',7],['1 tbsp 21g',21]]],
+ ['Oats',379,13,68,6.5,[['50 g serving',50],['80 g serving',80]]],
+ ['Bread wholemeal',247,11,41,3.5,[['1 slice 40g',40],['2 slices',80]]],
+ ['Sourdough',260,9,51,1.5,[['1 slice 50g',50],['2 slices',100]]],
+ ['Tortilla wrap',300,8,50,7,[['1 wrap 60g',60]]],
+ ['Bagel',270,10,52,1.5,[['1 bagel 90g',90]]],
+ ['Rice (cooked)',130,2.7,28,0.3,[['small 150g',150],['serving 200g',200],['large 280g',280]]],
+ ['Rice (dry)',360,7,79,0.9,[['60 g',60],['75 g',75]]],
+ ['Pasta (cooked)',158,6,31,0.9,[['serving 200g',200],['large 300g',300]]],
+ ['Pasta (dry)',360,13,71,1.5,[['75 g',75],['100 g',100]]],
+ ['Quinoa (cooked)',120,4.4,21,1.9,[['serving 185g',185]]],
+ ['Couscous (cooked)',112,3.8,23,0.2,[['serving 150g',150]]],
+ ['Potato',77,2,17,0.1,[['1 medium 200g',200],['300 g',300]]],
+ ['Sweet potato',86,1.6,20,0.1,[['1 medium 180g',180],['large 300g',300]]],
+ ['Banana',89,1.1,23,0.3,[['1 banana 118g',118]]],
+ ['Apple',52,0.3,14,0.2,[['1 apple 180g',180]]],
+ ['Orange',47,0.9,12,0.1,[['1 orange 150g',150]]],
+ ['Mixed berries',45,1,10,0.3,[['handful 80g',80],['150 g',150]]],
+ ['Blueberries',57,0.7,14,0.3,[['handful 80g',80]]],
+ ['Grapes',69,0.7,18,0.2,[['handful 80g',80]]],
+ ['Avocado',160,2,9,15,[['half 100g',100],['whole 200g',200]]],
+ ['Broccoli',34,2.8,7,0.4,[['serving 150g',150]]],
+ ['Spinach',23,2.9,3.6,0.4,[['handful 30g',30],['100 g',100]]],
+ ['Asparagus',20,2.2,3.9,0.1,[['6 spears 90g',90]]],
+ ['Mushrooms',22,3.1,3.3,0.3,[['100 g',100]]],
+ ['Red onion',40,1.1,9,0.1,[['half 55g',55],['1 onion 110g',110]]],
+ ['Tomato',18,0.9,3.9,0.2,[['1 tomato 90g',90]]],
+ ['Cucumber',15,0.7,3.6,0.1,[['quarter 75g',75]]],
+ ['Peppers',31,1,6,0.3,[['1 pepper 120g',120]]],
+ ['Salad leaves',15,1.4,2.9,0.2,[['big bowl 60g',60]]],
+ ['Courgette',17,1.2,3.1,0.3,[['1 courgette 200g',200]]],
+ ['Carrot',41,0.9,10,0.2,[['1 carrot 60g',60]]],
+ ['Chickpeas (canned)',139,7,22,2.6,[['half can 120g',120],['1 can 240g',240]]],
+ ['Black beans (canned)',132,8.9,24,0.5,[['half can 120g',120],['1 can 240g',240]]],
+ ['Lentils (cooked)',116,9,20,0.4,[['serving 150g',150]]],
+ ['Hummus',166,8,14,10,[['2 tbsp 30g',30],['50 g',50]]],
+ ['Protein bar',380,33,40,12,[['1 bar 60g',60]]],
+ ['Rice cakes',387,8,81,2.8,[['1 cake 9g',9],['3 cakes',27]]],
+ ['Granola',450,10,60,17,[['serving 45g',45]]],
+ ['Red wine',85,0,2.6,0,[['glass 175ml',175],['large 250ml',250]]],
+ ['White wine',82,0,2.6,0,[['glass 175ml',175],['large 250ml',250]]],
+ ['Beer / lager',43,0.5,3.6,0,[['pint 568ml',568],['bottle 330ml',330]]],
+ ['Flat white',45,2.4,3.6,2.4,[['1 cup 160ml',160]]],
+ ['Orange juice',45,0.7,10,0.2,[['glass 200ml',200]]],
+];
+if(!S.recentFoods) S.recentFoods = [];
+
+Object.assign(App, {
+  _picked:null,
+
+  nutSearch(){
+    const q = $('nut-q').value.trim().toLowerCase();
+    const box = $('nut-results'); this._picked=null; $('nut-picked').innerHTML='';
+    if(q.length<2){ box.innerHTML=''; return }
+    const m = FOODS.map((f,i)=>({f,i})).filter(x=>x.f[0].toLowerCase().includes(q)).slice(0,6);
+    box.innerHTML = m.length? m.map(x=>`<div class="list-item" style="cursor:pointer" onclick="App.pickFood(${x.i})">
+      <span class="small">${x.f[0]}</span><span class="small muted">${x.f[1]} kcal · ${x.f[2]}P /100g</span></div>`).join('')
+      : `<div class="small muted" style="padding:8px 0">No match — try another word, or use Manual entry below.</div>`;
+  },
+
+  pickFood(i){
+    const f = FOODS[i]; this._picked = {i, grams: f[5][0][1]};
+    $('nut-results').innerHTML='';
+    $('nut-picked').innerHTML = `<div style="border:1px solid var(--accent);border-radius:12px;padding:10px;margin-top:8px;background:var(--surface2)">
+      <div class="spread"><b>${f[0]}</b><span class="small muted">per 100g: ${f[1]} kcal</span></div>
+      <div class="setchips" style="margin:8px 0">${f[5].map((u,ui)=>`<span class="setchip" style="cursor:pointer" onclick="App.setGrams(${u[1]})">${u[0]}</span>`).join('')}
+        <span class="setchip" style="cursor:pointer" onclick="App.setGrams(100)">100 g</span></div>
+      <div class="row"><input type="number" id="nut-g" value="${this._picked.grams}" oninput="App.nutPreview()" style="flex:1"> 
+        <span class="small muted">grams</span>
+        <button class="primary" onclick="App.addFood()">Add</button></div>
+      <div class="small" id="nut-prev" style="margin-top:6px"></div></div>`;
+    this.nutPreview();
+  },
+
+  setGrams(g){ if(!this._picked) return; this._picked.grams=g; $('nut-g').value=g; this.nutPreview() },
+
+  nutPreview(){
+    if(!this._picked) return;
+    const f = FOODS[this._picked.i]; const g = parseFloat($('nut-g').value)||0; const r = g/100;
+    $('nut-prev').innerHTML = `= <b>${Math.round(f[1]*r)}</b> kcal · <b>${Math.round(f[2]*r)}</b>g protein · ${Math.round(f[3]*r)}g carbs · ${Math.round(f[4]*r)}g fat`;
+  },
+
+  addFood(){
+    if(!this._picked) return;
+    const f = FOODS[this._picked.i]; const g = parseFloat($('nut-g').value)||0;
+    if(!g){ toast('Enter grams'); return }
+    this._logFood(f[0], g, f[1]*g/100, f[2]*g/100, f[3]*g/100, f[4]*g/100);
+    S.recentFoods = [{name:f[0], grams:g, i:this._picked.i}].concat(S.recentFoods.filter(r=>r.name!==f[0])).slice(0,8);
+    this._picked=null; store.save(); this.render();
+  },
+
+  reAdd(ri){
+    const r = S.recentFoods[ri]; const f = FOODS[r.i];
+    if(!f || f[0]!==r.name){ toast('Food not found'); return }
+    this._logFood(f[0], r.grams, f[1]*r.grams/100, f[2]*r.grams/100, f[3]*r.grams/100, f[4]*r.grams/100);
+    store.save(); this.render();
+  },
+
+  _logFood(label, grams, k, p, c, f){
+    const n = nut(todayStr()); n.c=n.c||0; n.f=n.f||0;
+    k=Math.round(k); p=Math.round(p); c=Math.round(c); f=Math.round(f);
+    n.kcal+=k; n.pro+=p; n.c+=c; n.f+=f;
+    n.items.push({t:Date.now(), label, grams:Math.round(grams), k, p, c, f});
+    toast(`Added ${label} — ${k} kcal`);
+  },
+
+  delFood(idx){
+    const n = nut(todayStr()); const x = n.items[idx]; if(!x) return;
+    n.kcal=Math.max(0,n.kcal-(x.k||0)); n.pro=Math.max(0,n.pro-(x.p||0));
+    n.c=Math.max(0,(n.c||0)-(x.c||0)); n.f=Math.max(0,(n.f||0)-(x.f||0));
+    n.items.splice(idx,1); store.save(); this.render();
+  },
+});
 </script>
 </body>
 </html>
