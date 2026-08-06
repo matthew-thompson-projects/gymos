@@ -132,7 +132,9 @@ svg text{fill:var(--text2);font-size:10px}
 
 <div id="timerbar">
   <span id="timer-label">Rest</span>
+  <button class="tiny" style="background:rgba(255,255,255,.2);border:none;color:#fff" onclick="App.adjTimer(-15)">−15s</button>
   <span id="timer-count">0:00</span>
+  <button class="tiny" style="background:rgba(255,255,255,.2);border:none;color:#fff" onclick="App.adjTimer(30)">+30s</button>
   <button class="tiny" style="background:rgba(255,255,255,.2);border:none;color:#fff" onclick="App.stopTimer()">Skip</button>
 </div>
 
@@ -146,7 +148,7 @@ svg text{fill:var(--text2);font-size:10px}
 
 <script>
 'use strict';
-/* ================= GymOS v1.0 — Block 8 "Rebuild & Burn" =================
+/* ================= GymOS v1.1 — Block 8 "Rebuild & Burn" =================
    Offline-first single-file app. All data in localStorage. Export weekly!  */
 </script>
 <script>
@@ -376,6 +378,25 @@ function weightStats(){
 function sess(dateStr){ if(!S.sessions[dateStr]) S.sessions[dateStr]={}; return S.sessions[dateStr] }
 function sessFor(dateStr, key){ const s=sess(dateStr); if(!s[key]) s[key]={sets:{}, cardio:{}, done:false}; return s[key] }
 
+/* progression suggestion: based on last completed exposure of this exercise */
+function parseRpeCap(r){ const m=String(r).match(/(\d+(?:\.\d+)?)(?!.*\d)/); return m?parseFloat(m[1]):null }
+function suggestNext(ex, beforeDate){
+  if(ex.timed || !/^\d/.test(String(ex.reps))) return null;      // timed / AMRAP: no load suggestion
+  const last = lastLogged(ex.id, beforeDate); if(!last) return null;
+  const sets = last.sets;
+  const targetReps = parseInt(ex.reps), cap = parseRpeCap(ex.rpe)||8;
+  const step = (S.stepPref&&S.stepPref[ex.id])||ex.step;
+  const topLoad = Math.max(...sets.map(s=>s.w||0));
+  if(sets.some(s=>s.pain)) return {kg:topLoad, dir:0, note:'repeat — pain flagged last session'};
+  const enough = sets.length >= ex.sets;
+  const repsOk = sets.every(s=>(s.r||0) >= targetReps);
+  const rpes = sets.map(s=>s.rpe).filter(Boolean);
+  const rpeOk = rpes.length>0 && Math.max(...rpes) <= cap;
+  if(enough && repsOk && rpeOk) return {kg:topLoad+step, dir:1, note:`+${step}kg — progression earned`};
+  if(enough && repsOk && !rpes.length) return {kg:topLoad, dir:0, note:'repeat — log RPE to unlock auto-progression'};
+  return {kg:topLoad, dir:0, note:'repeat — fill all sets/reps in range first'};
+}
+
 /* find last logged sets for an exercise before a date */
 function lastLogged(exId, beforeDate){
   const dates = Object.keys(S.sessions).filter(d=>d<beforeDate).sort().reverse();
@@ -587,6 +608,7 @@ const App = {
       if(adj){ sets=Math.max(1,sets-1); load=Math.round(load*0.9/ex.step)*ex.step }
       const logged = rec.sets[ex.id]||[];
       const own = lastLogged(ex.id, d);
+      const sug = isDeload(week)? null : suggestNext(ex, d);
       const prevLine = own? `Last: ${own.sets.map(x=>ex.timed?(x.r+'s'+(x.w?(' +'+x.w+'kg'):'')):`${x.w||'BW'}×${x.r}${x.rpe?('@'+x.rpe):''}`).join(' · ')} (${fmtDate(own.d)})`
         : (ex.prev? 'History: '+ex.prev : '');
       const open = this.openEx===key+'.'+ex.id;
@@ -595,13 +617,15 @@ const App = {
           <div><div class="name">${esc(ex.name)}${ex.ss?`<span class="sschip">SS ${ex.ss}</span>`:''}</div>
             <div class="small muted">${sets} × ${esc(ex.reps)}${load?` @ ~${load}kg`:''} · RPE ${ex.rpe}${ex.rest?` · rest ${Math.round(ex.rest/60*10)/10}′`:''}</div>
             ${prevLine?`<div class="prev">${esc(prevLine)}</div>`:''}
+            ${sug?`<div class="prev" style="color:${sug.dir>0?'var(--good)':'var(--text2)'}">Next: <b>${sug.kg}kg</b> — ${esc(sug.note)}</div>`:''}
             ${logged.length?`<div class="setchips">${logged.map((x,i)=>`<span class="setchip" onclick="event.stopPropagation();App.delSet('${key}','${ex.id}',${i})">${ex.timed?(x.r+'s'+(x.w?(' +'+x.w+'kg'):'')):((x.w||'BW')+'×'+x.r)}${x.rpe?('@'+x.rpe):''}${x.pain?' ⚠':''} ✕</span>`).join('')}</div>`:''}
           </div>
           <div class="muted">${open?'▾':'▸'}</div>
         </div>`;
       if(open){
         const lastSet = logged[logged.length-1];
-        const wDefault = lastSet? lastSet.w : load;
+        const eff = (S.stepPref&&S.stepPref[ex.id])||ex.step;
+        const wDefault = lastSet? lastSet.w : (sug? sug.kg : load);
         const rDefault = lastSet? lastSet.r : (ex.timed || parseInt(ex.reps) || 10);
         h += `<div class="ex-body">
           ${ex.note?`<div class="small" style="margin-bottom:8px">📋 ${esc(ex.note)}</div>`:''}
@@ -626,9 +650,10 @@ const App = {
               ${VIDURL[ex.id]?`<a href="${VIDURL[ex.id]}" target="_blank" rel="noopener">Full tutorial ↗</a>`:''}</div></div>`):''}`;
           })():''}
           <div class="small muted" style="margin-bottom:4px">WEIGHT (kg)${ex.timed?' — added load, leave 0 if bodyweight':''}</div>
-          <div class="stepper"><button onclick="App.step('w',-${ex.step})">−</button>
-            <input type="number" id="in-w" step="${ex.step}" value="${wDefault}">
-            <button onclick="App.step('w',${ex.step})">+</button></div>
+          <div class="stepper"><button onclick="App.step('w',-${eff})">−</button>
+            <input type="number" id="in-w" step="${eff}" value="${wDefault}">
+            <button onclick="App.step('w',${eff})">+</button></div>
+          <div class="setchips" style="margin-top:6px">${[1,2,2.5,5].map(s=>`<span class="setchip" style="cursor:pointer;${s===eff?'':'background:var(--surface);border-color:var(--line);color:var(--muted)'}" onclick="App.setStepPref('${ex.id}',${s})">±${s}</span>`).join('')}</div>
           <div class="small muted" style="margin:8px 0 4px">${ex.timed?'SECONDS':'REPS'}</div>
           <div class="stepper"><button onclick="App.step('r',-${ex.timed?5:1})">−</button>
             <input type="number" id="in-r" value="${rDefault}">
@@ -660,6 +685,7 @@ const App = {
 
   toggleEx(key,id){ const k=key+'.'+id; this.openEx = this.openEx===k? null : k; this.selRpe={}; this.vidOpen=null; this.render() },
   toggleVid(id){ this.vidOpen = this.vidOpen===id? null : id; this.render() },
+  setStepPref(exId, s){ if(!S.stepPref) S.stepPref={}; S.stepPref[exId]=s; store.save(); this.render() },
   step(which,delta){ const el = which==='w'?$('in-w'):$('in-r');
     el.value = Math.max(0, Math.round((parseFloat(el.value||0)+delta)*100)/100) },
   pickRpe(v){ this.selRpe.v=v; document.querySelectorAll('#rpe-row button').forEach(b=>b.classList.toggle('sel', parseFloat(b.textContent)===v)) },
@@ -673,6 +699,7 @@ const App = {
     rec.sets[exId].push({w, r, rpe:this.selRpe.v||null, pain, t:Date.now()});
     store.save(); vibrate(30);
     if(pain) toast('Logged — pain noted. >2/10? Modify or substitute.');
+    else if(!rest) toast('Logged — superset: straight to the partner exercise ↔');
     else toast('Set logged');
     this.selRpe={};
     if(rest>0) this.startTimer(rest);
@@ -690,13 +717,16 @@ const App = {
   uncomplete(key){ sessFor(this.viewDate,key).done=false; store.save(); this.render() },
 
   /* rest timer */
-  startTimer(sec){ this.stopTimer(); let left=sec;
+  startTimer(sec){ this.stopTimer(); this._left=sec;
     $('timerbar').classList.add('show'); $('timer-label').textContent='Rest';
-    const tick=()=>{ const m=Math.floor(left/60), s=left%60;
+    const tick=()=>{ const m=Math.floor(this._left/60), s=this._left%60;
       $('timer-count').textContent = `${m}:${String(s).padStart(2,'0')}`;
-      if(left<=0){ this.stopTimer(); vibrate([200,100,200,100,400]); toast('Rest over — next set'); return }
-      left--; this.timer=setTimeout(tick,1000) };
+      if(this._left<=0){ this.stopTimer(); vibrate([200,100,200,100,400]); toast('Rest over — next set'); return }
+      this._left--; this.timer=setTimeout(tick,1000) };
     tick() },
+  adjTimer(d){ if(this.timer!=null){ this._left=Math.max(0,this._left+d);
+    const m=Math.floor(this._left/60), s=this._left%60;
+    $('timer-count').textContent = `${m}:${String(s).padStart(2,'0')}` } },
   stopTimer(){ if(this.timer) clearTimeout(this.timer); this.timer=null; $('timerbar').classList.remove('show') },
 };
 </script>
@@ -836,7 +866,7 @@ Object.assign(App, {
         Supplements: creatine 5g daily · whey to hit protein · caffeine &lt;400mg, none after 14:00 · vit D · omega-3<br><br>
         Pain rules: 0–2 continue · 3–4 modify (−20% or sub) · 5+ stop &amp; substitute<br><br>
         W5 = deload (auto-applied) · W6 = benchmarks: squat 8RM · bench 8RM · chins AMRAP · RDL 5RM · 2km row · 12′ AMRAP</div></div>
-      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.0 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
+      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.1 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
     $('scr-more').innerHTML = h;
   },
 
