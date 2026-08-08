@@ -9,6 +9,18 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>GymOS — Block 8</title>
 <style>
+:root[data-theme="light"]{
+  color-scheme: light;
+  --bg:#f4f4f2; --surface:#fcfcfb; --surface2:#ececea; --line:#d9d8d4;
+  --text:#0b0b0b; --text2:#52514e; --muted:#8a897f;
+  --accent:#2a78d6; --accent-soft:rgba(42,120,214,.12);
+  --good:#008300; --warn:#b87500; --bad:#d13c3b;
+}
+:root[data-theme="light"] nav{background:rgba(252,252,251,.96)}
+:root[data-theme="light"] .banner.info{color:#1d5da8}
+:root[data-theme="light"] .banner.warn{color:#8a5a00;background:rgba(184,117,0,.08)}
+:root[data-theme="light"] .banner.good{color:#00680a}
+:root[data-theme="light"] .vidbtn{color:#1d5da8}
 :root{
   color-scheme: dark;
   --bg:#111110; --surface:#1a1a19; --surface2:#232322; --line:#2e2e2c;
@@ -148,7 +160,7 @@ svg text{fill:var(--text2);font-size:10px}
 
 <script>
 'use strict';
-/* ================= GymOS v1.1 — Block 8 "Rebuild & Burn" =================
+/* ================= GymOS v1.2 — Block 8 "Rebuild & Burn" =================
    Offline-first single-file app. All data in localStorage. Export weekly!  */
 </script>
 <script>
@@ -202,7 +214,7 @@ const SESSIONS = {
   upperpull:{ title:'Upper Pull', dur:'60–70 min', type:'lift', second:'Hyrox @ PowerX (lunch)',
     warm:'Row 3 min · cable rotations 1×12 @5–7.5kg · scap pull-ups ×8 · band rows ×15',
     ex:[
-     {id:'chin',name:'Chin-Ups', sets:4, reps:'AMRAP', startKg:0, step:2.5, rpe:'9', rest:150, note:'Running benchmark. Block target 55+ total.', prev:'20+12+10+8=50 (Jun) · best 54', sub:'Wide lat pulldown 75kg×10'},
+     {id:'wpu', name:'Weighted Pull-Up', sets:4, reps:'6', startKg:5, step:2.5, rpe:'8', rest:150, note:'NEW — replaces chin-ups (retired after 1+ year). Belt or DB between feet, start +5kg. BW chin AMRAP returns once in Week 6 as the benchmark test.', prev:'BW chins: 20+12+10+8=50 (Jun) · best 54', sub:'Wide lat pulldown 75kg×10 / BW chin-ups'},
      {id:'bbr', name:'Barbell Row', sets:3, reps:'10', startKg:75, step:2.5, rpe:'8', rest:120, note:'Coach note "increase to 75" — actioned.', prev:'70kg×10 (Jun)', sub:'Meadows row 30–40kg'},
      {id:'csr', name:'Chest-Supported Row', sets:4, reps:'8', startKg:32, step:2, rpe:'8', rest:90, note:'Coach note "increase to 32" — actioned.', prev:'30kg×8 (Jun)', sub:'Seated cable row'},
      {id:'ohp', name:'Standing Barbell Press', sets:3, reps:'10', startKg:45, step:2.5, rpe:'8', rest:120, note:'Solid 3×10 first, then 47.5.', prev:'45kg ×12/10/7 (stuck for weeks)', sub:'Seated DB press / landmine'},
@@ -245,6 +257,11 @@ const store = {
   save(){ localStorage.setItem(this.key, JSON.stringify(this.data)) },
 };
 const HOSTED = location.protocol==='http:'||location.protocol==='https:';
+(function(){ try{ const d=JSON.parse(localStorage.getItem('gymos.v1'));
+  const t=(d&&d.settings&&d.settings.theme)||'light';
+  document.documentElement.setAttribute('data-theme', t);
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content', t==='light'?'#f4f4f2':'#111110');
+}catch(e){ document.documentElement.setAttribute('data-theme','light') } })();
 if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 const S = store.load();
 if(!S.mastered) S.mastered = {};   // exercises ticked as "I know this" — hides technique videos
@@ -263,7 +280,7 @@ const VID = {
   chin:'strict chin up full range technique', bbr:'barbell bent over row form',
   csr:'chest supported dumbbell row bench', ohp:'standing barbell overhead press technique',
   po:'cable rope pullover lats', tri2:'skull crusher ez bar technique', cur:'cable bar bicep curl',
-  dbg:'dead bug exercise core form',
+  dbg:'dead bug exercise core form', wpu:'weighted pull up technique dip belt',
 };
 
 /* curated DIRECT video links — verified live 5 Aug 2026 (fallback: VID search query) */
@@ -404,9 +421,16 @@ function lastLogged(exId, beforeDate){
     if(rec.sets && rec.sets[exId] && rec.sets[exId].length) return {d, sets:rec.sets[exId]} } }
   return null;
 }
-/* chin-up total for latest logged chin session */
+/* pull benchmark: weighted pull-up top set if trained, else chin-up history */
 function chinTotal(){ const l = lastLogged('chin', '9999'); if(!l) return null;
   return {d:l.d, total:l.sets.reduce((s,x)=>s+(x.r||0),0)} }
+function pullBench(){
+  const w = lastLogged('wpu','9999');
+  if(w){ const top = w.sets.reduce((b,s)=>((s.w||0)>(b.w||0)?s:b), w.sets[0]);
+    return {txt:`+${top.w||0}kg×${top.r}`, label:'weighted pull-up'} }
+  const c = chinTotal(); if(c) return {txt:String(c.total), label:'chin-up total'};
+  return {txt:'—', label:'pull benchmark'};
+}
 
 /* nutrition day record */
 function nut(dateStr){ if(!S.nutrition[dateStr]) S.nutrition[dateStr]={kcal:0,pro:0,items:[]}; return S.nutrition[dateStr] }
@@ -686,6 +710,10 @@ const App = {
   toggleEx(key,id){ const k=key+'.'+id; this.openEx = this.openEx===k? null : k; this.selRpe={}; this.vidOpen=null; this.render() },
   toggleVid(id){ this.vidOpen = this.vidOpen===id? null : id; this.render() },
   setStepPref(exId, s){ if(!S.stepPref) S.stepPref={}; S.stepPref[exId]=s; store.save(); this.render() },
+  setTheme(t){ if(!S.settings) S.settings={}; S.settings.theme=t; store.save();
+    document.documentElement.setAttribute('data-theme', t);
+    const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content', t==='light'?'#f4f4f2':'#111110');
+    this.render() },
   step(which,delta){ const el = which==='w'?$('in-w'):$('in-r');
     el.value = Math.max(0, Math.round((parseFloat(el.value||0)+delta)*100)/100) },
   pickRpe(v){ this.selRpe.v=v; document.querySelectorAll('#rpe-row button').forEach(b=>b.classList.toggle('sel', parseFloat(b.textContent)===v)) },
@@ -813,7 +841,7 @@ Object.assign(App, {
         <div class="dots">${dots}</div>
         <div class="grid3" style="margin-top:10px">
           <div class="stat"><div class="v">${totalSets}</div><div class="l">sets logged</div></div>
-          <div class="stat"><div class="v">${ct? ct.total:'—'}</div><div class="l">chin-up total</div></div>
+          <div class="stat"><div class="v">${pullBench().txt}</div><div class="l">${pullBench().label}</div></div>
           <div class="stat"><div class="v">${rn?Math.round(rs/rn)+'%':'—'}</div><div class="l">avg readiness</div></div>
         </div></div>
       <div class="card"><h2>Nutrition (this week)</h2>
@@ -854,6 +882,11 @@ Object.assign(App, {
           <option value="">Choose exercise…</option>
           ${Object.values(SESSIONS).filter(s=>s.ex).flatMap(s=>s.ex).map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('')}
         </select><div id="hist-out"></div></div>
+      <div class="card"><h2>Appearance</h2>
+        <div class="row">
+          <button class="${(S.settings&&S.settings.theme)==='dark'?'':'primary'}" style="flex:1" onclick="App.setTheme('light')">☀️ Light</button>
+          <button class="${(S.settings&&S.settings.theme)==='dark'?'primary':''}" style="flex:1" onclick="App.setTheme('dark')">🌙 Dark</button>
+        </div></div>
       <div class="card"><h2>Data</h2>
         <button class="big" onclick="App.exportData()" style="margin-bottom:8px">⬇ Export all data (JSON)</button>
         <div class="small muted" style="margin-bottom:8px">Do this weekly — browser storage is not forever. The export is the app's future import format.</div>
@@ -866,7 +899,7 @@ Object.assign(App, {
         Supplements: creatine 5g daily · whey to hit protein · caffeine &lt;400mg, none after 14:00 · vit D · omega-3<br><br>
         Pain rules: 0–2 continue · 3–4 modify (−20% or sub) · 5+ stop &amp; substitute<br><br>
         W5 = deload (auto-applied) · W6 = benchmarks: squat 8RM · bench 8RM · chins AMRAP · RDL 5RM · 2km row · 12′ AMRAP</div></div>
-      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.1 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
+      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.2 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
     $('scr-more').innerHTML = h;
   },
 
