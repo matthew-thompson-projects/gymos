@@ -160,7 +160,7 @@ svg text{fill:var(--text2);font-size:10px}
 
 <script>
 'use strict';
-/* ================= GymOS v1.2 — Block 8 "Rebuild & Burn" =================
+/* ================= GymOS v1.3 — Block 8 "Rebuild & Burn" =================
    Offline-first single-file app. All data in localStorage. Export weekly!  */
 </script>
 <script>
@@ -525,11 +525,24 @@ const App = {
         <div><div class="spread small"><span>Fat</span><span>${n.f} / ${fatT} g</span></div>
           <div class="bar"><div style="width:${Math.min(100,n.f/fatT*100)}%"></div></div></div>
       </div>
+      ${(()=>{ const hr=new Date().getHours();
+        const cm=this._meal||(hr<11?'breakfast':hr<15?'lunch':hr<18?'snacks':'dinner');
+        const MEALS=[['breakfast','Breakfast'],['lunch','Lunch'],['dinner','Dinner'],['snacks','Snacks']];
+        if(n.items&&n.items.some(x=>x.label&&(x.meal||'other')==='other')) MEALS.push(['other','Earlier']);
+        const sub=m=>n.items.reduce((a,x)=>((x.meal||'other')===m&&x.label)?{k:a.k+(x.k||0),p:a.p+(x.p||0),c:a.c+(x.c||0),f:a.f+(x.f||0)}:a,{k:0,p:0,c:0,f:0});
+        const cur=MEALS.find(x=>x[0]===cm)||MEALS[0];
+        const tabs=MEALS.map(([m,l])=>{const s=sub(m);
+          return `<button class="tiny ${m===cm?'primary':''}" style="flex:1;min-width:0;padding:7px 2px;font-size:12px" onclick="App.setMeal('${m}')">${l}${s.k?`<div style="font-size:10px;font-weight:400;opacity:.85">${s.k}</div>`:''}</button>`}).join('');
+        const s=sub(cm);
+        const rows=n.items.map((x,i)=>(x.label&&(x.meal||'other')===cm)?`<div class="list-item"><span class="small">${esc(x.label)}${x.grams?` · ${x.grams}g`:''}</span><span class="small"><b>${x.k||0}</b> kcal · ${x.p||0}P <button class="tiny" style="margin-left:6px;padding:2px 8px" onclick="App.delFood(${i})">✕</button></span></div>`:'').join('');
+        return `<div class="row" style="margin-top:10px;gap:5px">${tabs}</div>
+        ${s.k?`<div class="small" style="margin-top:8px"><b>${cur[1]}</b>: ${s.k} kcal · ${s.p}g P · ${s.c}g C · ${s.f}g F</div>`:''}
+        ${rows||`<div class="small muted" style="margin-top:8px">Nothing in ${cur[1].toLowerCase()} yet — add below.</div>`}`;
+      })()}
       <div style="margin-top:10px"><input id="nut-q" placeholder="🔍 Search food… (chicken, eggs, rice)" oninput="App.nutSearch()" autocomplete="off"></div>
       <div id="nut-results"></div>
       <div id="nut-picked"></div>
       ${(S.recentFoods&&S.recentFoods.length)?`<div class="small muted" style="margin-top:8px">Recent</div><div class="setchips">${S.recentFoods.map((r,i)=>`<span class="setchip" onclick="App.reAdd(${i})">+ ${esc(r.name)} ${r.grams}g</span>`).join('')}</div>`:''}
-      ${(n.items&&n.items.some(x=>x.label))?`<div class="small muted" style="margin-top:10px">Logged today</div>${n.items.map((x,i)=>x.label?`<div class="list-item"><span class="small">${esc(x.label)}${x.grams?` · ${x.grams}g`:''}</span><span class="small"><b>${x.k||0}</b> kcal · ${x.p||0}P <button class="tiny" style="margin-left:6px;padding:2px 8px" onclick="App.delFood(${i})">✕</button></span></div>`:'').join('')}`:''}
       <details style="margin-top:8px"><summary class="small muted">Manual entry (kcal &amp; macros)</summary>
       <div class="grid2" style="margin-top:8px">
         <input type="number" id="qa-kcal" placeholder="kcal">
@@ -568,7 +581,8 @@ const App = {
           c=+($('qa-carb').value||0), f=+($('qa-fat').value||0);
     if(!k&&!p&&!c&&!f) return;
     const n = nut(todayStr()); n.c=n.c||0; n.f=n.f||0;
-    n.kcal+=k; n.pro+=p; n.c+=c; n.f+=f; n.items.push({t:Date.now(),label:'Manual entry',k,p,c,f});
+    n.kcal+=k; n.pro+=p; n.c+=c; n.f+=f;
+    n.items.push({t:Date.now(),label:'Manual entry',k,p,c,f,meal:(typeof curMealKey==='function'?curMealKey():'other')});
     store.save(); toast('Added'); this.render();
   },
 
@@ -899,7 +913,7 @@ Object.assign(App, {
         Supplements: creatine 5g daily · whey to hit protein · caffeine &lt;400mg, none after 14:00 · vit D · omega-3<br><br>
         Pain rules: 0–2 continue · 3–4 modify (−20% or sub) · 5+ stop &amp; substitute<br><br>
         W5 = deload (auto-applied) · W6 = benchmarks: squat 8RM · bench 8RM · chins AMRAP · RDL 5RM · 2km row · 12′ AMRAP</div></div>
-      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.2 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
+      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.3 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
     $('scr-more').innerHTML = h;
   },
 
@@ -1019,9 +1033,15 @@ const FOODS = [
  ['Orange juice',45,0.7,10,0.2,[['glass 200ml',200]]],
 ];
 if(!S.recentFoods) S.recentFoods = [];
+/* migrate pre-v1.3 items (no meal tag) to 'other' */
+for(const d in S.nutrition){ (S.nutrition[d].items||[]).forEach(x=>{ if(x.label && !x.meal) x.meal='other' }) }
+function curMealKey(){ if(App._meal) return App._meal;
+  const hr=new Date().getHours(); return hr<11?'breakfast':hr<15?'lunch':hr<18?'snacks':'dinner' }
+function mealLabel(m){ return {breakfast:'Breakfast',lunch:'Lunch',dinner:'Dinner',snacks:'Snacks',other:'Earlier'}[m]||m }
 
 Object.assign(App, {
-  _picked:null,
+  _picked:null, _meal:null,
+  setMeal(m){ this._meal=m; this._picked=null; this.render() },
 
   nutSearch(){
     const q = $('nut-q').value.trim().toLowerCase();
@@ -1075,8 +1095,9 @@ Object.assign(App, {
     const n = nut(todayStr()); n.c=n.c||0; n.f=n.f||0;
     k=Math.round(k); p=Math.round(p); c=Math.round(c); f=Math.round(f);
     n.kcal+=k; n.pro+=p; n.c+=c; n.f+=f;
-    n.items.push({t:Date.now(), label, grams:Math.round(grams), k, p, c, f});
-    toast(`Added ${label} — ${k} kcal`);
+    const meal = curMealKey();
+    n.items.push({t:Date.now(), label, grams:Math.round(grams), k, p, c, f, meal});
+    toast(`Added to ${mealLabel(meal)} — ${k} kcal`);
   },
 
   delFood(idx){
