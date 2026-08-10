@@ -87,6 +87,11 @@ nav .ico{font-size:20px;line-height:1}
   background:var(--accent);color:#fff;padding:10px 16px;font-weight:700;font-size:18px;
   display:none;justify-content:space-between;align-items:center}
 #timerbar.show{display:flex}
+#timerfull{position:fixed;inset:0;z-index:80;background:var(--bg);display:none;
+  flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
+#timerfull.show{display:flex}
+#tf-count{font-size:min(26vw,160px);font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums;margin:8px 0}
+#tf-count.go{font-size:min(15vw,90px)}
 /* sliders */
 .slider-row{margin-bottom:10px}
 .slider-row .spread{margin-bottom:2px}
@@ -142,10 +147,21 @@ svg text{fill:var(--text2);font-size:10px}
 <div class="screen" id="scr-report"></div>
 <div class="screen" id="scr-more"></div>
 
+<div id="timerfull">
+  <div id="tf-label" class="small muted" style="letter-spacing:2px;font-weight:700">REST</div>
+  <div id="tf-count">0:00</div>
+  <div id="tf-next" class="small" style="margin-bottom:18px"></div>
+  <div class="row" style="gap:10px;justify-content:center">
+    <button onclick="App.adjTimer(-15)">−15s</button>
+    <button onclick="App.adjTimer(30)">+30s</button>
+    <button class="primary" onclick="App.stopTimer()">Skip / Done</button>
+  </div>
+  <div class="small muted" style="margin-top:20px;padding:10px" onclick="App.minimizeTimer()">Tap here to minimise</div>
+</div>
 <div id="timerbar">
   <span id="timer-label">Rest</span>
   <button class="tiny" style="background:rgba(255,255,255,.2);border:none;color:#fff" onclick="App.adjTimer(-15)">−15s</button>
-  <span id="timer-count">0:00</span>
+  <span id="timer-count" onclick="App.expandTimer()">0:00</span>
   <button class="tiny" style="background:rgba(255,255,255,.2);border:none;color:#fff" onclick="App.adjTimer(30)">+30s</button>
   <button class="tiny" style="background:rgba(255,255,255,.2);border:none;color:#fff" onclick="App.stopTimer()">Skip</button>
 </div>
@@ -160,7 +176,7 @@ svg text{fill:var(--text2);font-size:10px}
 
 <script>
 'use strict';
-/* ================= GymOS v1.3 — Block 8 "Rebuild & Burn" =================
+/* ================= GymOS v1.4 — Block 8 "Rebuild & Burn" =================
    Offline-first single-file app. All data in localStorage. Export weekly!  */
 </script>
 <script>
@@ -183,6 +199,8 @@ const SESSIONS = {
      {id:'wl',  name:'DB Walking Lunge', sets:3, reps:'20 steps', startKg:28, step:1, rpe:'8', rest:90, note:'', prev:'28kg (Jun)', sub:'Bulgarian split squat 22.5kg×15'},
      {id:'slc', name:'Seated Leg Curl', sets:3, reps:'12–15', startKg:82, step:2.5, rpe:'8', rest:0, ss:'C1', note:'Superset with knee raises', prev:'86kg×15-fail (Jun)', sub:'Lying curl 65kg'},
      {id:'hkr', name:'Hanging Knee Raise', sets:3, reps:'10', startKg:0, step:1, rpe:'—', rest:60, ss:'C2', note:'Controlled, no swing — rest after the pair', prev:'BW×10 (Jun)', sub:''},
+     {id:'abd', name:'Hip Abduction', sets:3, reps:'12', startKg:86, step:5, rpe:'8', rest:60, opt:true, note:'Optional — from your Back-Pain day history.', prev:'86–91kg (Mar)', sub:''},
+     {id:'calf', name:'Standing Calf Raise', sets:3, reps:'12–15', startKg:40, step:5, rpe:'8', rest:60, opt:true, note:'Optional — calibrate load first time.', prev:'—', sub:'Seated calf raise'},
     ]},
   upperpush:{ title:'Upper Push', dur:'60–70 min', type:'lift', second:'Hyrox @ PowerX (lunch)',
     warm:'Row 3 min · cable int/ext rotations 1×12 @5–7.5kg (non-negotiable) · band pull-aparts ×15 · push-ups ×10',
@@ -195,6 +213,8 @@ const SESSIONS = {
      {id:'lat', name:'Cable Lateral Raise', sets:3, reps:'12', startKg:10, step:1.25, rpe:'8', rest:0, note:'Scapular plane, superset w/ face pulls', prev:'10kg (Jun)', sub:'DB lateral raise'},
      {id:'fp',  name:'Face Pulls', sets:3, reps:'12–15', startKg:25, step:2.5, rpe:'8', rest:60, note:'', prev:'25kg (Jun)', sub:''},
      {id:'tri', name:'Rope Triceps Extension', sets:3, reps:'12', startKg:25, step:2.5, rpe:'8', rest:60, note:'', prev:'25kg (Jun)', sub:'Skull crusher 20kg'},
+     {id:'lr21', name:'DB Lateral Raise (drop set)', sets:2, reps:'15', startKg:7.5, step:1.25, rpe:'9', rest:60, opt:true, note:'Optional — drop one weight mid-set (your coach\'s old pattern).', prev:'12/10/8kg dropsets (Jan)', sub:''},
+     {id:'pua', name:'Push-Up AMRAP', sets:2, reps:'AMRAP', startKg:0, step:1, rpe:'9', rest:60, opt:true, note:'Optional finisher.', prev:'—', sub:''},
     ]},
   z2:{ title:'Zone 2 — deliberately easy', dur:'40–45 min', type:'cardio',
     warm:'Straight in — first 5 min extra easy.',
@@ -210,6 +230,8 @@ const SESSIONS = {
      {id:'bss', name:'Bulgarian Split Squat', sets:3, reps:'15/leg', startKg:22.5, step:2.5, rpe:'8', rest:0, ss:'D1', note:'Superset with Pallof press', prev:'Jan: 25kg×20', sub:'Split squat front-foot-elevated 26kg'},
      {id:'pal', name:'Pallof Press', sets:3, reps:'10/side', startKg:20, step:2.5, rpe:'—', rest:90, ss:'D2', note:'Rest after the pair', prev:'20kg (Jun)', sub:''},
      {id:'ule', name:'Unilateral Leg Extension', sets:3, reps:'8', startKg:50, step:2, rpe:'8', rest:60, note:'+2×15 @46kg after', prev:'50kg×8 + 46kg×15 (Jun)', sub:''},
+     {id:'bex', name:'45° Back Extension', sets:3, reps:'12', startKg:0, step:5, rpe:'8', rest:60, opt:true, note:'Optional — bodyweight first, hold a plate if easy.', prev:'—', sub:''},
+     {id:'calf2', name:'Standing Calf Raise', sets:3, reps:'12–15', startKg:40, step:5, rpe:'8', rest:60, opt:true, note:'Optional.', prev:'—', sub:'Seated calf raise'},
     ]},
   upperpull:{ title:'Upper Pull', dur:'60–70 min', type:'lift', second:'Hyrox @ PowerX (lunch)',
     warm:'Row 3 min · cable rotations 1×12 @5–7.5kg · scap pull-ups ×8 · band rows ×15',
@@ -222,6 +244,8 @@ const SESSIONS = {
      {id:'tri2',name:'Rope Triceps / Skull Crusher', sets:3, reps:'12', startKg:25, step:2.5, rpe:'8', rest:60, note:'Slow tempo', prev:'25kg / 20kg (Jun)', sub:''},
      {id:'cur', name:'Cable Bar Curl', sets:3, reps:'12', startKg:26, step:1, rpe:'8', rest:0, ss:'F1', note:'Superset with dead bug', prev:'25–26kg (Jun)', sub:'DB curl 15kg'},
      {id:'dbg', name:'Dead Bug', sets:2, reps:'10/side', startKg:0, step:1, rpe:'—', rest:60, ss:'F2', note:'If the lower back registers, reset (coach\'s cue). Rest after the pair.', prev:'From Aug–Oct 25 block', sub:''},
+     {id:'ham', name:'Hammer Curl', sets:2, reps:'12', startKg:12.5, step:1.25, rpe:'8', rest:60, opt:true, note:'Optional — from your Mar–Apr programme.', prev:'12.5kg (Mar)', sub:''},
+     {id:'rvf', name:'Cable Reverse Fly', sets:2, reps:'15', startKg:10, step:1.25, rpe:'8', rest:60, opt:true, note:'Optional.', prev:'10–12.5kg (2025)', sub:''},
     ]},
   satdouble:{ title:'Saturday Double — Quality + HIIT', dur:'40–45 min', type:'cardio',
     warm:'10 min easy build.',
@@ -281,6 +305,9 @@ const VID = {
   csr:'chest supported dumbbell row bench', ohp:'standing barbell overhead press technique',
   po:'cable rope pullover lats', tri2:'skull crusher ez bar technique', cur:'cable bar bicep curl',
   dbg:'dead bug exercise core form', wpu:'weighted pull up technique dip belt',
+  abd:'hip abduction machine form', calf:'standing calf raise form', calf2:'standing calf raise form',
+  lr21:'dumbbell lateral raise drop set', pua:'push up form', bex:'45 degree back extension form',
+  ham:'hammer curl form', rvf:'cable reverse fly rear delt',
 };
 
 /* curated DIRECT video links — verified live 5 Aug 2026 (fallback: VID search query) */
@@ -553,10 +580,18 @@ const App = {
       <button class="primary big" style="margin-top:8px" onclick="App.quickAdd()">Add manual entry</button></details>
       <div class="small muted" style="margin-top:6px">Food values are typical estimates — weigh oils, nut butters and carbs where precision matters. Fibre target: 38g/day.</div></div>`;
 
-    // weight quick log
-    h += `<div class="card"><div class="spread"><h2>Body weight</h2>${wLogged?'<span class="chip good">logged ✓</span>':''}</div>
-      <div class="row"><input type="number" step="0.1" id="qw" placeholder="kg (fasted)" style="flex:1">
-      <button class="primary" id="btn-logw" onclick="App.logWeight('qw')">Log</button></div></div>`;
+    // weight quick log — schedule-aware (default: Mondays)
+    const weighSched = (S.settings&&S.settings.weighDays)||'mon';
+    const isWeighDay = weighSched==='daily' || (weighSched==='mwf'&&[1,3,5].includes(wd)) || (weighSched==='mon'&&wd===1);
+    if(isWeighDay || wLogged || this._forceWeigh){
+      h += `<div class="card"><div class="spread"><h2>Body weight</h2>${wLogged?'<span class="chip good">logged ✓</span>':'<span class="chip acc">weigh-in day</span>'}</div>
+        <div class="row"><input type="number" step="0.1" id="qw" placeholder="kg (fasted)" style="flex:1">
+        <button class="primary" id="btn-logw" onclick="App.logWeight('qw')">Log</button></div></div>`;
+    } else {
+      const nextDay = weighSched==='mon'?'Monday':'Mon / Wed / Fri';
+      h += `<div class="card"><div class="spread"><span class="small muted">⚖️ Next weigh-in: ${nextDay}, fasted</span>
+        <button class="tiny" onclick="App._forceWeigh=true;App.render()">Log anyway</button></div></div>`;
+    }
 
     // main action
     const action = preBlock? 'Rest up — Block 8 starts Monday. Do a food shop for the week.' :
@@ -640,7 +675,9 @@ const App = {
     // lift
     const adj = this.adjustOn;
     let exList = s.ex; if(adj) exList = s.ex; // sets/load shown adjusted per-exercise below
+    let optShown = false;
     for(const ex of exList){
+      if(ex.opt && !optShown){ h += `<div class="small muted" style="margin:12px 0 6px;text-transform:uppercase;letter-spacing:1px;font-size:11px">Optional — if time allows (~10–15 min)</div>`; optShown=true }
       const t = exTarget(ex, week);
       let sets = t.sets, load = t.load;
       if(adj){ sets=Math.max(1,sets-1); load=Math.round(load*0.9/ex.step)*ex.step }
@@ -652,7 +689,7 @@ const App = {
       const open = this.openEx===key+'.'+ex.id;
       h += `<div class="ex ${open?'open':''}" id="ex-${ex.id}">
         <div class="ex-head" onclick="App.toggleEx('${key}','${ex.id}')">
-          <div><div class="name">${esc(ex.name)}${ex.ss?`<span class="sschip">SS ${ex.ss}</span>`:''}</div>
+          <div><div class="name">${esc(ex.name)}${ex.ss?`<span class="sschip">SS ${ex.ss}</span>`:''}${logged.length>=sets&&logged.length>0?`<span class="sschip" style="border-color:var(--good);color:var(--good)">✓</span>`:''}</div>
             <div class="small muted">${sets} × ${esc(ex.reps)}${load?` @ ~${load}kg`:''} · RPE ${ex.rpe}${ex.rest?` · rest ${Math.round(ex.rest/60*10)/10}′`:''}</div>
             ${prevLine?`<div class="prev">${esc(prevLine)}</div>`:''}
             ${sug?`<div class="prev" style="color:${sug.dir>0?'var(--good)':'var(--text2)'}">Next: <b>${sug.kg}kg</b> — ${esc(sug.note)}</div>`:''}
@@ -702,7 +739,7 @@ const App = {
           <div class="row" style="margin:10px 0 4px">
             <label class="small row" style="gap:6px"><input type="checkbox" id="in-pain" style="width:22px;height:22px"> Pain?</label>
           </div>
-          <button class="primary big" style="margin-top:6px" onclick="App.logSet('${key}','${ex.id}',${ex.rest})">LOG SET ${logged.length+1} / ${sets}</button>
+          <button class="primary big" style="margin-top:6px" onclick="App.logSet('${key}','${ex.id}')">${logged.length>=sets?`LOG EXTRA SET ${logged.length+1}`:`LOG SET ${logged.length+1} / ${sets}`}</button>
           ${ex.sub?`<div class="small muted" style="margin-top:8px">Substitute: ${esc(ex.sub)}</div>`:''}
         </div>`;
       }
@@ -724,6 +761,7 @@ const App = {
   toggleEx(key,id){ const k=key+'.'+id; this.openEx = this.openEx===k? null : k; this.selRpe={}; this.vidOpen=null; this.render() },
   toggleVid(id){ this.vidOpen = this.vidOpen===id? null : id; this.render() },
   setStepPref(exId, s){ if(!S.stepPref) S.stepPref={}; S.stepPref[exId]=s; store.save(); this.render() },
+  setSetting(k,v){ if(!S.settings) S.settings={}; S.settings[k]=v; store.save(); this.render() },
   setTheme(t){ if(!S.settings) S.settings={}; S.settings.theme=t; store.save();
     document.documentElement.setAttribute('data-theme', t);
     const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content', t==='light'?'#f4f4f2':'#111110');
@@ -732,19 +770,46 @@ const App = {
     el.value = Math.max(0, Math.round((parseFloat(el.value||0)+delta)*100)/100) },
   pickRpe(v){ this.selRpe.v=v; document.querySelectorAll('#rpe-row button').forEach(b=>b.classList.toggle('sel', parseFloat(b.textContent)===v)) },
 
-  logSet(key,exId,rest){
+  logSet(key,exId,restIgnored){
     const w = parseFloat($('in-w').value)||0, r = parseInt($('in-r').value)||0;
     const pain = $('in-pain').checked;
     if(!r){ toast('Enter reps'); return }
+    const s = SESSIONS[key]; const ex = s.ex.find(e=>e.id===exId);
     const rec = sessFor(this.viewDate, key);
     if(!rec.sets[exId]) rec.sets[exId]=[];
     rec.sets[exId].push({w, r, rpe:this.selRpe.v||null, pain, t:Date.now()});
     store.save(); vibrate(30);
-    if(pain) toast('Logged — pain noted. >2/10? Modify or substitute.');
-    else if(!rest) toast('Logged — superset: straight to the partner exercise ↔');
-    else toast('Set logged');
     this.selRpe={};
-    if(rest>0) this.startTimer(rest);
+    // effective rest (settings can cap everything at 60s)
+    let rest = ex? ex.rest : 0;
+    if(S.settings && S.settings.restMode==='fast60' && rest>60) rest=60;
+    // planned sets for today (deload / reduced-session aware)
+    const week = blockWeek(this.viewDate);
+    let planned = ex.sets;
+    if(isDeload(week)) planned = Math.max(1, planned-1);
+    if(this.adjustOn) planned = Math.max(1, planned-1);
+    const doneNow = rec.sets[exId].length >= planned;
+    // superset partner name
+    let partner = null;
+    if(ex.ss){ const g = ex.ss.slice(0,-1);
+      const p = s.ex.find(e=>e.id!==ex.id && e.ss && e.ss.slice(0,-1)===g); partner = p? p.name : null }
+    if(pain) toast('Logged — pain noted. >2/10? Modify or substitute.');
+    if(doneNow){
+      // auto-advance: open next incomplete required exercise
+      const idx = s.ex.indexOf(ex);
+      let next = null;
+      for(let i=idx+1;i<s.ex.length;i++){ const e2=s.ex[i]; if(e2.opt) continue;
+        let p2=e2.sets; if(isDeload(week)) p2=Math.max(1,p2-1); if(this.adjustOn) p2=Math.max(1,p2-1);
+        if(((rec.sets[e2.id]||[]).length) < p2){ next=e2; break } }
+      this.openEx = next? key+'.'+next.id : null;
+      if(!pain) toast(`${ex.name} done ✓${next? ' → '+next.name : ''}`);
+      if(rest>0) this.startTimer(rest, next? next.name : null);
+      else if(ex.ss) this.showGo(partner);
+    } else {
+      if(!pain && rest===0 && ex.ss) {} else if(!pain) toast('Set logged');
+      if(rest>0) this.startTimer(rest, null);
+      else if(ex.ss) this.showGo(partner);
+    }
     this.render();
   },
   delSet(key,exId,i){ const rec=sessFor(this.viewDate,key); rec.sets[exId].splice(i,1); store.save(); this.render() },
@@ -758,18 +823,38 @@ const App = {
     rec.done=true; rec.doneAt=Date.now(); store.save(); vibrate([50,50,50]); toast('Logged ✓'); this.render() },
   uncomplete(key){ sessFor(this.viewDate,key).done=false; store.save(); this.render() },
 
-  /* rest timer */
-  startTimer(sec){ this.stopTimer(); this._left=sec;
-    $('timerbar').classList.add('show'); $('timer-label').textContent='Rest';
-    const tick=()=>{ const m=Math.floor(this._left/60), s=this._left%60;
-      $('timer-count').textContent = `${m}:${String(s).padStart(2,'0')}`;
-      if(this._left<=0){ this.stopTimer(); vibrate([200,100,200,100,400]); toast('Rest over — next set'); return }
-      this._left--; this.timer=setTimeout(tick,1000) };
-    tick() },
-  adjTimer(d){ if(this.timer!=null){ this._left=Math.max(0,this._left+d);
-    const m=Math.floor(this._left/60), s=this._left%60;
-    $('timer-count').textContent = `${m}:${String(s).padStart(2,'0')}` } },
-  stopTimer(){ if(this.timer) clearTimeout(this.timer); this.timer=null; $('timerbar').classList.remove('show') },
+  /* rest timer — wall-clock based so it survives screen-off/background */
+  _endAt:null, _goMode:false,
+  startTimer(sec, nextLabel){
+    this.stopTimer(); this._endAt = Date.now() + sec*1000; this._goMode=false;
+    $('tf-label').textContent='REST'; $('tf-count').classList.remove('go');
+    $('tf-next').textContent = nextLabel? ('Next: '+nextLabel) : '';
+    $('timerfull').classList.add('show');
+    this._tick();
+  },
+  showGo(partnerName){
+    this.stopTimer(); this._goMode=true;
+    $('tf-label').textContent='SUPERSET — NO REST';
+    $('tf-count').textContent='GO →'; $('tf-count').classList.add('go');
+    $('tf-next').textContent = partnerName? ('Straight to: '+partnerName) : 'Straight to the partner exercise';
+    $('timerfull').classList.add('show');
+  },
+  _tick(){
+    if(this.timer) clearTimeout(this.timer);
+    if(!this._endAt) return;
+    const left = Math.max(0, Math.ceil((this._endAt - Date.now())/1000));
+    const m=Math.floor(left/60), s=left%60, txt=`${m}:${String(s).padStart(2,'0')}`;
+    $('tf-count').textContent = txt; $('timer-count').textContent = txt;
+    if(left<=0){ this.stopTimer(); vibrate([200,100,200,100,400]); toast('Rest over — next set'); return }
+    this.timer = setTimeout(()=>this._tick(), 250);
+  },
+  adjTimer(d){ if(this._endAt){ this._endAt = Math.max(Date.now(), this._endAt + d*1000); this._tick() } },
+  minimizeTimer(){ $('timerfull').classList.remove('show');
+    if(this._endAt) $('timerbar').classList.add('show');
+  },
+  expandTimer(){ if(this._endAt||this._goMode){ $('timerbar').classList.remove('show'); $('timerfull').classList.add('show') } },
+  stopTimer(){ if(this.timer) clearTimeout(this.timer); this.timer=null; this._endAt=null; this._goMode=false;
+    $('timerbar').classList.remove('show'); $('timerfull').classList.remove('show') },
 };
 </script>
 <script>
@@ -896,6 +981,19 @@ Object.assign(App, {
           <option value="">Choose exercise…</option>
           ${Object.values(SESSIONS).filter(s=>s.ex).flatMap(s=>s.ex).map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('')}
         </select><div id="hist-out"></div></div>
+      <div class="card"><h2>Settings</h2>
+        <div class="small muted" style="margin-bottom:4px">Rest timer</div>
+        <div class="row" style="margin-bottom:10px">
+          <button class="${(S.settings&&S.settings.restMode)==='fast60'?'':'primary'} tiny" style="flex:1" onclick="App.setSetting('restMode','programmed')">As programmed</button>
+          <button class="${(S.settings&&S.settings.restMode)==='fast60'?'primary':''} tiny" style="flex:1" onclick="App.setSetting('restMode','fast60')">Cap all at 60s</button>
+        </div>
+        <div class="small muted" style="margin-bottom:4px">Weigh-in schedule</div>
+        <div class="row">
+          <button class="${((S.settings&&S.settings.weighDays)||'mon')==='mon'?'primary':''} tiny" style="flex:1" onclick="App.setSetting('weighDays','mon')">Mondays</button>
+          <button class="${(S.settings&&S.settings.weighDays)==='mwf'?'primary':''} tiny" style="flex:1" onclick="App.setSetting('weighDays','mwf')">Mon/Wed/Fri</button>
+          <button class="${(S.settings&&S.settings.weighDays)==='daily'?'primary':''} tiny" style="flex:1" onclick="App.setSetting('weighDays','daily')">Daily</button>
+        </div>
+        <div class="small muted" style="margin-top:6px">Coach's note: main-lift rests are 2–2.5 min for a reason — the 60s cap suits accessory-only days. Mon/Wed/Fri weighing gives a far better trend than Mondays alone for a 10-second cost.</div></div>
       <div class="card"><h2>Appearance</h2>
         <div class="row">
           <button class="${(S.settings&&S.settings.theme)==='dark'?'':'primary'}" style="flex:1" onclick="App.setTheme('light')">☀️ Light</button>
@@ -913,7 +1011,7 @@ Object.assign(App, {
         Supplements: creatine 5g daily · whey to hit protein · caffeine &lt;400mg, none after 14:00 · vit D · omega-3<br><br>
         Pain rules: 0–2 continue · 3–4 modify (−20% or sub) · 5+ stop &amp; substitute<br><br>
         W5 = deload (auto-applied) · W6 = benchmarks: squat 8RM · bench 8RM · chins AMRAP · RDL 5RM · 2km row · 12′ AMRAP</div></div>
-      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.3 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
+      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.4 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
     $('scr-more').innerHTML = h;
   },
 
@@ -948,6 +1046,8 @@ Object.assign(App, {
 });
 
 /* boot */
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && App._endAt) App._tick() });
+if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 App.go('today');
 </script>
 <script>
