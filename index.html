@@ -176,7 +176,7 @@ svg text{fill:var(--text2);font-size:10px}
 
 <script>
 'use strict';
-/* ================= GymOS v1.4 — Block 8 "Rebuild & Burn" =================
+/* ================= GymOS v1.5 — Block 8 "Rebuild & Burn" =================
    Offline-first single-file app. All data in localStorage. Export weekly!  */
 </script>
 <script>
@@ -185,67 +185,67 @@ svg text{fill:var(--text2);font-size:10px}
 const BLOCK = {
   id:'B8', name:'Block 8 — Rebuild & Burn', start:'2026-08-10', weeks:6,
   goalWeight:95, startWeight:103,
-  kcal:{train:2550, rest:2300}, protein:205, fibre:38,
-  carbs:{train:255, rest:195}, fat:{train:75, rest:72},
+  kcal:{train:2550, rest:60}, protein:205, fibre:38,
+  carbs:{train:255, rest:60}, fat:{train:75, rest:60},
 };
 // rest in seconds. startKg = numeric stepper default. prev = seeded history.
 const SESSIONS = {
-  lower1:{ title:'Lower 1 — Squat focus', dur:'65–75 min', type:'lift',
+  lower1:{ title:'Lower 1 — Squat focus', dur:'~60 min', type:'lift',
     warm:'Bike 4 min easy · 90/90 hip switches ×8/side · ankle rocks ×10 · BW squats ×10 · hollow hold 2×20s · bar ×8, 40kg ×5, 60kg ×3',
     ex:[
-     {id:'bsq', name:'Back Squat (tempo 3-0-1)', sets:3, reps:'8', startKg:70, step:2.5, rpe:'≤7', rest:150, note:'RPE-capped re-entry. Target ~90kg×8 by W4.', prev:'Jan: 125kg×6 @3s ecc · none since April', sub:'Hack squat 35–40kg/side'},
+     {id:'bsq', name:'Back Squat (tempo 3-0-1)', sets:4, reps:'6', startKg:70, step:2.5, rpe:'≤7', rest:60, note:'RPE-capped re-entry. 4×6 for 60s rests (same volume as 3×8). Target ~90kg by W4.', prev:'Jan: 125kg×6 @3s ecc · none since April', sub:'Hack squat 35–40kg/side'},
      {id:'lp',  name:'45° Leg Press', sets:3, reps:'12', startKg:160, step:5, rpe:'7–8', rest:0, ss:'B1', note:'Superset with side plank', prev:'170kg×15 (Jun)', sub:'Hack squat'},
-     {id:'sp1', name:'Side Plank', sets:3, reps:'45s/side', timed:45, startKg:0, step:1, rpe:'—', rest:90, ss:'B2', note:'Superset with leg press — rest after the pair', prev:'45s (Jun)', sub:''},
-     {id:'wl',  name:'DB Walking Lunge', sets:3, reps:'20 steps', startKg:28, step:1, rpe:'8', rest:90, note:'', prev:'28kg (Jun)', sub:'Bulgarian split squat 22.5kg×15'},
+     {id:'sp1', name:'Side Plank', sets:3, reps:'45s/side', timed:45, startKg:0, step:1, rpe:'—', rest:60, ss:'B2', note:'Superset with leg press — rest after the pair', prev:'45s (Jun)', sub:''},
+     {id:'wl',  name:'DB Walking Lunge', sets:3, reps:'20 steps', startKg:28, step:1, rpe:'8', rest:60, note:'', prev:'28kg (Jun)', sub:'Bulgarian split squat 22.5kg×15'},
      {id:'slc', name:'Seated Leg Curl', sets:3, reps:'12–15', startKg:82, step:2.5, rpe:'8', rest:0, ss:'C1', note:'Superset with knee raises', prev:'86kg×15-fail (Jun)', sub:'Lying curl 65kg'},
      {id:'hkr', name:'Hanging Knee Raise', sets:3, reps:'10', startKg:0, step:1, rpe:'—', rest:60, ss:'C2', note:'Controlled, no swing — rest after the pair', prev:'BW×10 (Jun)', sub:''},
-     {id:'abd', name:'Hip Abduction', sets:3, reps:'12', startKg:86, step:5, rpe:'8', rest:60, opt:true, note:'Optional — from your Back-Pain day history.', prev:'86–91kg (Mar)', sub:''},
-     {id:'calf', name:'Standing Calf Raise', sets:3, reps:'12–15', startKg:40, step:5, rpe:'8', rest:60, opt:true, note:'Optional — calibrate load first time.', prev:'—', sub:'Seated calf raise'},
+     {id:'abd', name:'Hip Abduction', sets:3, reps:'12', startKg:86, step:5, rpe:'8', rest:60, note:'From your Back-Pain day history.', prev:'86–91kg (Mar)', sub:''},
+     {id:'calf', name:'Standing Calf Raise', sets:3, reps:'12–15', startKg:40, step:5, rpe:'8', rest:60, note:'Calibrate load first time.', prev:'—', sub:'Seated calf raise'},
     ]},
-  upperpush:{ title:'Upper Push', dur:'60–70 min', type:'lift', second:'Hyrox @ PowerX (lunch)',
+  upperpush:{ title:'Upper Push', dur:'~60 min', type:'lift', second:'Hyrox @ PowerX (lunch)',
     warm:'Row 3 min · cable int/ext rotations 1×12 @5–7.5kg (non-negotiable) · band pull-aparts ×15 · push-ups ×10',
     ex:[
-     {id:'bp',  name:'Barbell Bench Press (tempo 3-1-1)', sets:3, reps:'10', startKg:50, step:2.5, rpe:'≤7', rest:150, note:'First barbell bench since Oct 2025. Shoulder >2/10 → DB flat press.', prev:'Oct 25: 70kg×12 slow tempo', sub:'DB flat press 26kg / cable press 27kg'},
+     {id:'bp',  name:'Barbell Bench Press (tempo 3-1-1)', sets:4, reps:'8', startKg:50, step:2.5, rpe:'≤7', rest:60, note:'First barbell bench since Oct 2025. Shoulder >2/10 → DB flat press.', prev:'Oct 25: 70kg×12 slow tempo', sub:'DB flat press 26kg / cable press 27kg'},
      {id:'dbi', name:'DB Incline Press', sets:3, reps:'12', startKg:27.5, step:2.5, rpe:'8', rest:0, ss:'B1', note:'Superset with hollow hold (your coach\'s original pairing)', prev:'27.5–28kg×12 (Jun)', sub:'Machine chest press'},
-     {id:'hh',  name:'Hollow Hold', sets:3, reps:'45s', timed:45, startKg:0, step:1, rpe:'—', rest:120, ss:'B2', note:'Rest after the pair', prev:'45s (Jun)', sub:''},
-     {id:'dbs', name:'Seated DB Shoulder Press', sets:3, reps:'10', startKg:20, step:2.5, rpe:'7–8', rest:90, note:'Calibrate first session — old log ambiguous.', prev:'"DB Press" 35–36kg (unit unclear)', sub:'Landmine press 20kg/side'},
-     {id:'pd',  name:'Pec Deck / Cable Fly', sets:3, reps:'10', startKg:18, step:2, rpe:'8', rest:75, note:'', prev:'18kg (Jun)', sub:'DB fly'},
+     {id:'hh',  name:'Hollow Hold', sets:3, reps:'45s', timed:45, startKg:0, step:1, rpe:'—', rest:60, ss:'B2', note:'Rest after the pair', prev:'45s (Jun)', sub:''},
+     {id:'dbs', name:'Seated DB Shoulder Press', sets:3, reps:'10', startKg:20, step:2.5, rpe:'7–8', rest:60, note:'Calibrate first session — old log ambiguous.', prev:'"DB Press" 35–36kg (unit unclear)', sub:'Landmine press 20kg/side'},
+     {id:'pd',  name:'Pec Deck / Cable Fly', sets:3, reps:'10', startKg:18, step:2, rpe:'8', rest:60, note:'', prev:'18kg (Jun)', sub:'DB fly'},
      {id:'lat', name:'Cable Lateral Raise', sets:3, reps:'12', startKg:10, step:1.25, rpe:'8', rest:0, note:'Scapular plane, superset w/ face pulls', prev:'10kg (Jun)', sub:'DB lateral raise'},
      {id:'fp',  name:'Face Pulls', sets:3, reps:'12–15', startKg:25, step:2.5, rpe:'8', rest:60, note:'', prev:'25kg (Jun)', sub:''},
      {id:'tri', name:'Rope Triceps Extension', sets:3, reps:'12', startKg:25, step:2.5, rpe:'8', rest:60, note:'', prev:'25kg (Jun)', sub:'Skull crusher 20kg'},
-     {id:'lr21', name:'DB Lateral Raise (drop set)', sets:2, reps:'15', startKg:7.5, step:1.25, rpe:'9', rest:60, opt:true, note:'Optional — drop one weight mid-set (your coach\'s old pattern).', prev:'12/10/8kg dropsets (Jan)', sub:''},
-     {id:'pua', name:'Push-Up AMRAP', sets:2, reps:'AMRAP', startKg:0, step:1, rpe:'9', rest:60, opt:true, note:'Optional finisher.', prev:'—', sub:''},
+     {id:'lr21', name:'DB Lateral Raise (drop set)', sets:2, reps:'15', startKg:7.5, step:1.25, rpe:'9', rest:60, note:'Drop one weight mid-set (your coach\'s old pattern).', prev:'12/10/8kg dropsets (Jan)', sub:''},
+     {id:'pua', name:'Push-Up AMRAP', sets:2, reps:'AMRAP', startKg:0, step:1, rpe:'9', rest:60, note:'Session finisher.', prev:'—', sub:''},
     ]},
   z2:{ title:'Zone 2 — deliberately easy', dur:'40–45 min', type:'cardio',
     warm:'Straight in — first 5 min extra easy.',
     desc:'Bike / row / run / ruck (rotate). 60–70% max HR, conversational. Value = it stays easy. First session to drop when readiness triggers fire.',
     fields:['Modality','Minutes','Avg HR','Distance'] },
-  lower2:{ title:'Lower 2 — Hinge focus', dur:'65–75 min', type:'lift',
+  lower2:{ title:'Lower 2 — Hinge focus', dur:'~60 min', type:'lift',
     warm:'Bike 4 min · cat-camel ×8 · glute bridge ×12 · hollow hold 2×20s · RDL bar ×8, 50kg ×5, 70kg ×3',
     ex:[
-     {id:'rdl', name:'Barbell RDL', sets:3, reps:'8', startKg:90, step:2.5, rpe:'7–8', rest:0, ss:'A1', note:'Hollow-body position. Superset with plank (your coach\'s original pairing). W4 option: trap-bar DL 3×5 @100–110 if 3 pain-free weeks.', prev:'90kg×8 (Jun)', sub:'45° back extension + leg curl'},
-     {id:'plk', name:'Plank', sets:3, reps:'60s (+20kg if solid)', timed:60, startKg:20, step:5, rpe:'—', rest:150, ss:'A2', note:'Rest after the pair', prev:'60s +20kg (Jun)', sub:''},
-     {id:'rdlb',name:'RDL back-off', sets:1, reps:'12', startKg:80, step:2.5, rpe:'8', rest:120, note:'', prev:'80kg×12 (Jun)', sub:''},
-     {id:'hs',  name:'Hack Squat', sets:3, reps:'12', startKg:40, step:2.5, rpe:'7–8', rest:120, note:'Load per side. Coach said "can increase" — so we are.', prev:'35–40kg/side (Jun)', sub:'Leg press'},
+     {id:'rdl', name:'Barbell RDL', sets:4, reps:'6', startKg:90, step:2.5, rpe:'7–8', rest:0, ss:'A1', note:'Hollow-body position. Superset with plank (your coach\'s original pairing). W4 option: trap-bar DL 3×5 @100–110 if 3 pain-free weeks.', prev:'90kg×8 (Jun)', sub:'45° back extension + leg curl'},
+     {id:'plk', name:'Plank', sets:3, reps:'60s (+20kg if solid)', timed:60, startKg:20, step:5, rpe:'—', rest:60, ss:'A2', note:'Rest after the pair', prev:'60s +20kg (Jun)', sub:''},
+     {id:'rdlb',name:'RDL back-off', sets:1, reps:'12', startKg:80, step:2.5, rpe:'8', rest:60, note:'', prev:'80kg×12 (Jun)', sub:''},
+     {id:'hs',  name:'Hack Squat', sets:3, reps:'12', startKg:40, step:2.5, rpe:'7–8', rest:60, note:'Load per side. Coach said "can increase" — so we are.', prev:'35–40kg/side (Jun)', sub:'Leg press'},
      {id:'bss', name:'Bulgarian Split Squat', sets:3, reps:'15/leg', startKg:22.5, step:2.5, rpe:'8', rest:0, ss:'D1', note:'Superset with Pallof press', prev:'Jan: 25kg×20', sub:'Split squat front-foot-elevated 26kg'},
-     {id:'pal', name:'Pallof Press', sets:3, reps:'10/side', startKg:20, step:2.5, rpe:'—', rest:90, ss:'D2', note:'Rest after the pair', prev:'20kg (Jun)', sub:''},
+     {id:'pal', name:'Pallof Press', sets:3, reps:'10/side', startKg:20, step:2.5, rpe:'—', rest:60, ss:'D2', note:'Rest after the pair', prev:'20kg (Jun)', sub:''},
      {id:'ule', name:'Unilateral Leg Extension', sets:3, reps:'8', startKg:50, step:2, rpe:'8', rest:60, note:'+2×15 @46kg after', prev:'50kg×8 + 46kg×15 (Jun)', sub:''},
-     {id:'bex', name:'45° Back Extension', sets:3, reps:'12', startKg:0, step:5, rpe:'8', rest:60, opt:true, note:'Optional — bodyweight first, hold a plate if easy.', prev:'—', sub:''},
-     {id:'calf2', name:'Standing Calf Raise', sets:3, reps:'12–15', startKg:40, step:5, rpe:'8', rest:60, opt:true, note:'Optional.', prev:'—', sub:'Seated calf raise'},
+     {id:'bex', name:'45° Back Extension', sets:3, reps:'12', startKg:0, step:5, rpe:'8', rest:60, note:'Bodyweight first, hold a plate if easy.', prev:'—', sub:''},
+     {id:'calf2', name:'Standing Calf Raise', sets:3, reps:'12–15', startKg:40, step:5, rpe:'8', rest:60, note:'', prev:'—', sub:'Seated calf raise'},
     ]},
-  upperpull:{ title:'Upper Pull', dur:'60–70 min', type:'lift', second:'Hyrox @ PowerX (lunch)',
+  upperpull:{ title:'Upper Pull', dur:'~60 min', type:'lift', second:'Hyrox @ PowerX (lunch)',
     warm:'Row 3 min · cable rotations 1×12 @5–7.5kg · scap pull-ups ×8 · band rows ×15',
     ex:[
-     {id:'wpu', name:'Weighted Pull-Up', sets:4, reps:'6', startKg:5, step:2.5, rpe:'8', rest:150, note:'NEW — replaces chin-ups (retired after 1+ year). Belt or DB between feet, start +5kg. BW chin AMRAP returns once in Week 6 as the benchmark test.', prev:'BW chins: 20+12+10+8=50 (Jun) · best 54', sub:'Wide lat pulldown 75kg×10 / BW chin-ups'},
-     {id:'bbr', name:'Barbell Row', sets:3, reps:'10', startKg:75, step:2.5, rpe:'8', rest:120, note:'Coach note "increase to 75" — actioned.', prev:'70kg×10 (Jun)', sub:'Meadows row 30–40kg'},
-     {id:'csr', name:'Chest-Supported Row', sets:4, reps:'8', startKg:32, step:2, rpe:'8', rest:90, note:'Coach note "increase to 32" — actioned.', prev:'30kg×8 (Jun)', sub:'Seated cable row'},
-     {id:'ohp', name:'Standing Barbell Press', sets:3, reps:'10', startKg:45, step:2.5, rpe:'8', rest:120, note:'Solid 3×10 first, then 47.5.', prev:'45kg ×12/10/7 (stuck for weeks)', sub:'Seated DB press / landmine'},
+     {id:'wpu', name:'Weighted Pull-Up', sets:4, reps:'6', startKg:5, step:2.5, rpe:'8', rest:60, note:'NEW — replaces chin-ups (retired after 1+ year). Belt or DB between feet, start +5kg. BW chin AMRAP returns once in Week 6 as the benchmark test.', prev:'BW chins: 20+12+10+8=50 (Jun) · best 54', sub:'Wide lat pulldown 75kg×10 / BW chin-ups'},
+     {id:'bbr', name:'Barbell Row', sets:3, reps:'10', startKg:75, step:2.5, rpe:'8', rest:60, note:'Coach note "increase to 75" — actioned.', prev:'70kg×10 (Jun)', sub:'Meadows row 30–40kg'},
+     {id:'csr', name:'Chest-Supported Row', sets:4, reps:'8', startKg:32, step:2, rpe:'8', rest:60, note:'Coach note "increase to 32" — actioned.', prev:'30kg×8 (Jun)', sub:'Seated cable row'},
+     {id:'ohp', name:'Standing Barbell Press', sets:4, reps:'8', startKg:45, step:2.5, rpe:'8', rest:60, note:'Solid 3×10 first, then 47.5.', prev:'45kg ×12/10/7 (stuck for weeks)', sub:'Seated DB press / landmine'},
      {id:'po',  name:'Rope Pullover', sets:3, reps:'12', startKg:37.5, step:2.5, rpe:'8', rest:0, note:'Superset w/ triceps', prev:'37.5kg (Jun)', sub:''},
      {id:'tri2',name:'Rope Triceps / Skull Crusher', sets:3, reps:'12', startKg:25, step:2.5, rpe:'8', rest:60, note:'Slow tempo', prev:'25kg / 20kg (Jun)', sub:''},
      {id:'cur', name:'Cable Bar Curl', sets:3, reps:'12', startKg:26, step:1, rpe:'8', rest:0, ss:'F1', note:'Superset with dead bug', prev:'25–26kg (Jun)', sub:'DB curl 15kg'},
      {id:'dbg', name:'Dead Bug', sets:2, reps:'10/side', startKg:0, step:1, rpe:'—', rest:60, ss:'F2', note:'If the lower back registers, reset (coach\'s cue). Rest after the pair.', prev:'From Aug–Oct 25 block', sub:''},
-     {id:'ham', name:'Hammer Curl', sets:2, reps:'12', startKg:12.5, step:1.25, rpe:'8', rest:60, opt:true, note:'Optional — from your Mar–Apr programme.', prev:'12.5kg (Mar)', sub:''},
-     {id:'rvf', name:'Cable Reverse Fly', sets:2, reps:'15', startKg:10, step:1.25, rpe:'8', rest:60, opt:true, note:'Optional.', prev:'10–12.5kg (2025)', sub:''},
+     {id:'ham', name:'Hammer Curl', sets:2, reps:'12', startKg:12.5, step:1.25, rpe:'8', rest:60, note:'From your Mar–Apr programme.', prev:'12.5kg (Mar)', sub:''},
+     {id:'rvf', name:'Cable Reverse Fly', sets:2, reps:'15', startKg:10, step:1.25, rpe:'8', rest:60, note:'', prev:'10–12.5kg (2025)', sub:''},
     ]},
   satdouble:{ title:'Saturday Double — Quality + HIIT', dur:'40–45 min', type:'cardio',
     warm:'10 min easy build.',
@@ -1011,7 +1011,7 @@ Object.assign(App, {
         Supplements: creatine 5g daily · whey to hit protein · caffeine &lt;400mg, none after 14:00 · vit D · omega-3<br><br>
         Pain rules: 0–2 continue · 3–4 modify (−20% or sub) · 5+ stop &amp; substitute<br><br>
         W5 = deload (auto-applied) · W6 = benchmarks: squat 8RM · bench 8RM · chins AMRAP · RDL 5RM · 2km row · 12′ AMRAP</div></div>
-      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.4 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
+      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.5 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
     $('scr-more').innerHTML = h;
   },
 
