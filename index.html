@@ -133,6 +133,15 @@ a{color:var(--accent)}
   color:#fff;font-size:12px;padding:14px 10px 8px;text-align:center}
 .sschip{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);
   border-radius:6px;padding:1px 6px;font-size:11px;font-weight:700;margin-left:6px}
+.ssgroup{border:1.5px solid var(--accent);border-radius:14px;padding:8px 8px 0;margin-bottom:10px}
+.ssgroup .ex{margin-bottom:8px}
+.ssghead{font-size:10px;font-weight:700;letter-spacing:1.2px;margin:0 0 6px 4px;color:var(--accent)}
+.ssgroup.ssg-A{border-color:#3987e5}.ssgroup.ssg-A .ssghead{color:#3987e5}
+.ssgroup.ssg-B{border-color:#199e70}.ssgroup.ssg-B .ssghead{color:#199e70}
+.ssgroup.ssg-C{border-color:#8a7ff0}.ssgroup.ssg-C .ssghead{color:#8a7ff0}
+.ssgroup.ssg-D{border-color:#d97b26}.ssgroup.ssg-D .ssghead{color:#d97b26}
+.ssgroup.ssg-E{border-color:#d55181}.ssgroup.ssg-E .ssghead{color:#d55181}
+.ssgroup.ssg-F{border-color:#c98500}.ssgroup.ssg-F .ssghead{color:#c98500}
 #toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--surface2);
   border:1px solid var(--accent);border-radius:12px;padding:10px 18px;z-index:100;display:none;font-weight:600}
 svg text{fill:var(--text2);font-size:10px}
@@ -176,7 +185,7 @@ svg text{fill:var(--text2);font-size:10px}
 
 <script>
 'use strict';
-/* ================= GymOS v1.5 — Block 8 "Rebuild & Burn" =================
+/* ================= GymOS v1.6 — Block 8 "Rebuild & Burn" =================
    Offline-first single-file app. All data in localStorage. Export weekly!  */
 </script>
 <script>
@@ -210,16 +219,27 @@ const SESSIONS = {
      {id:'hh',  name:'Hollow Hold', sets:3, reps:'45s', timed:45, startKg:0, step:1, rpe:'—', rest:60, ss:'B2', note:'Rest after the pair', prev:'45s (Jun)', sub:''},
      {id:'dbs', name:'Seated DB Shoulder Press', sets:3, reps:'10', startKg:20, step:2.5, rpe:'7–8', rest:60, note:'Calibrate first session — old log ambiguous.', prev:'"DB Press" 35–36kg (unit unclear)', sub:'Landmine press 20kg/side'},
      {id:'pd',  name:'Pec Deck / Cable Fly', sets:3, reps:'10', startKg:18, step:2, rpe:'8', rest:60, note:'', prev:'18kg (Jun)', sub:'DB fly'},
-     {id:'lat', name:'Cable Lateral Raise', sets:3, reps:'12', startKg:10, step:1.25, rpe:'8', rest:0, note:'Scapular plane, superset w/ face pulls', prev:'10kg (Jun)', sub:'DB lateral raise'},
-     {id:'fp',  name:'Face Pulls', sets:3, reps:'12–15', startKg:25, step:2.5, rpe:'8', rest:60, note:'', prev:'25kg (Jun)', sub:''},
+     {id:'lat', name:'Cable Lateral Raise', sets:3, reps:'12', startKg:10, step:1.25, rpe:'8', rest:0, ss:'E1', note:'Scapular plane — superset with face pulls', prev:'10kg (Jun)', sub:'DB lateral raise'},
+     {id:'fp',  name:'Face Pulls', sets:3, reps:'12–15', startKg:25, step:2.5, rpe:'8', rest:60, ss:'E2', note:'Rest after the pair', prev:'25kg (Jun)', sub:''},
      {id:'tri', name:'Rope Triceps Extension', sets:3, reps:'12', startKg:25, step:2.5, rpe:'8', rest:60, note:'', prev:'25kg (Jun)', sub:'Skull crusher 20kg'},
      {id:'lr21', name:'DB Lateral Raise (drop set)', sets:2, reps:'15', startKg:7.5, step:1.25, rpe:'9', rest:60, note:'Drop one weight mid-set (your coach\'s old pattern).', prev:'12/10/8kg dropsets (Jan)', sub:''},
      {id:'pua', name:'Push-Up AMRAP', sets:2, reps:'AMRAP', startKg:0, step:1, rpe:'9', rest:60, note:'Session finisher.', prev:'—', sub:''},
     ]},
   z2:{ title:'Zone 2 — deliberately easy', dur:'40–45 min', type:'cardio',
     warm:'Straight in — first 5 min extra easy.',
-    desc:'Bike / row / run / ruck (rotate). 60–70% max HR, conversational. Value = it stays easy. First session to drop when readiness triggers fire.',
+    desc:'Held in reserve (deload-week Wednesday + readiness downgrades). 60–70% max HR, conversational.',
     fields:['Modality','Minutes','Avg HR','Distance'] },
+  fullbody:{ title:'Full Body — Pump & Carry', dur:'~60 min', type:'lift',
+    warm:'Bike 4 min easy · band pull-aparts ×15 · BW squats ×10 · push-ups ×10',
+    ex:[
+     {id:'lpp', name:'Leg Press (pump)', sets:3, reps:'15', startKg:140, step:5, rpe:'7', rest:60, note:'Deliberately lighter than Monday — pump, not grind. Tomorrow is hinge day.', prev:'170kg×15 best', sub:'Hack squat'},
+     {id:'latp', name:'Lat Pulldown (wide)', sets:3, reps:'12', startKg:65, step:2.5, rpe:'7–8', rest:60, note:'', prev:'Oct 25: 75–77kg×10', sub:'Machine row'},
+     {id:'mcp', name:'Machine Chest Press', sets:3, reps:'12', startKg:40, step:2.5, rpe:'7–8', rest:60, note:'Calibrate first time — lighter than Tuesday, this is volume not intensity.', prev:'—', sub:'Cable press 27kg'},
+     {id:'fpw', name:'Face Pulls', sets:3, reps:'15', startKg:25, step:2.5, rpe:'8', rest:0, ss:'D1', note:'Superset with Pallof', prev:'25kg (Jun)', sub:''},
+     {id:'palw', name:'Pallof Press', sets:3, reps:'10/side', startKg:20, step:2.5, rpe:'—', rest:60, ss:'D2', note:'Rest after the pair', prev:'20kg (Jun)', sub:''},
+     {id:'fc', name:"Farmer's Carry", sets:3, reps:'40', startKg:24, step:4, rpe:'8', rest:60, note:'~40 m per set · kg per hand. Grip, core, engine.', prev:'—', sub:'Trap-bar carry / heavy DB hold 45s'},
+     {id:'spin', name:'Easy Spin Cool-down', sets:1, reps:'10 min', timed:600, startKg:0, step:1, rpe:'—', rest:0, note:'Conversational pace — keeps a sliver of the aerobic base alive.', prev:'—', sub:'Incline walk 10 min'},
+    ]},
   lower2:{ title:'Lower 2 — Hinge focus', dur:'~60 min', type:'lift',
     warm:'Bike 4 min · cat-camel ×8 · glute bridge ×12 · hollow hold 2×20s · RDL bar ×8, 50kg ×5, 70kg ×3',
     ex:[
@@ -240,8 +260,8 @@ const SESSIONS = {
      {id:'bbr', name:'Barbell Row', sets:3, reps:'10', startKg:75, step:2.5, rpe:'8', rest:60, note:'Coach note "increase to 75" — actioned.', prev:'70kg×10 (Jun)', sub:'Meadows row 30–40kg'},
      {id:'csr', name:'Chest-Supported Row', sets:4, reps:'8', startKg:32, step:2, rpe:'8', rest:60, note:'Coach note "increase to 32" — actioned.', prev:'30kg×8 (Jun)', sub:'Seated cable row'},
      {id:'ohp', name:'Standing Barbell Press', sets:4, reps:'8', startKg:45, step:2.5, rpe:'8', rest:60, note:'Solid 3×10 first, then 47.5.', prev:'45kg ×12/10/7 (stuck for weeks)', sub:'Seated DB press / landmine'},
-     {id:'po',  name:'Rope Pullover', sets:3, reps:'12', startKg:37.5, step:2.5, rpe:'8', rest:0, note:'Superset w/ triceps', prev:'37.5kg (Jun)', sub:''},
-     {id:'tri2',name:'Rope Triceps / Skull Crusher', sets:3, reps:'12', startKg:25, step:2.5, rpe:'8', rest:60, note:'Slow tempo', prev:'25kg / 20kg (Jun)', sub:''},
+     {id:'po',  name:'Rope Pullover', sets:3, reps:'12', startKg:37.5, step:2.5, rpe:'8', rest:0, ss:'E1', note:'Superset with triceps', prev:'37.5kg (Jun)', sub:''},
+     {id:'tri2',name:'Rope Triceps / Skull Crusher', sets:3, reps:'12', startKg:25, step:2.5, rpe:'8', rest:60, ss:'E2', note:'Slow tempo — rest after the pair', prev:'25kg / 20kg (Jun)', sub:''},
      {id:'cur', name:'Cable Bar Curl', sets:3, reps:'12', startKg:26, step:1, rpe:'8', rest:0, ss:'F1', note:'Superset with dead bug', prev:'25–26kg (Jun)', sub:'DB curl 15kg'},
      {id:'dbg', name:'Dead Bug', sets:2, reps:'10/side', startKg:0, step:1, rpe:'—', rest:60, ss:'F2', note:'If the lower back registers, reset (coach\'s cue). Rest after the pair.', prev:'From Aug–Oct 25 block', sub:''},
      {id:'ham', name:'Hammer Curl', sets:2, reps:'12', startKg:12.5, step:1.25, rpe:'8', rest:60, note:'From your Mar–Apr programme.', prev:'12.5kg (Mar)', sub:''},
@@ -264,7 +284,7 @@ const SESSIONS = {
 };
 // weekday (0=Sun..6=Sat) -> [morning, extra...]
 const WEEKPLAN = {
-  1:['lower1','pilates'], 2:['upperpush','hyrox'], 3:['z2'],
+  1:['lower1','pilates'], 2:['upperpush','hyrox'], 3:['fullbody'],
   4:['lower2'], 5:['upperpull','hyrox'], 6:['satdouble'], 0:['rest'],
 };
 const DAYNAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -305,10 +325,12 @@ const VID = {
   csr:'chest supported dumbbell row bench', ohp:'standing barbell overhead press technique',
   po:'cable rope pullover lats', tri2:'skull crusher ez bar technique', cur:'cable bar bicep curl',
   dbg:'dead bug exercise core form', wpu:'weighted pull up technique dip belt',
-  abd:'hip abduction machine form', calf:'standing calf raise form', calf2:'standing calf raise form',
+  abd:'hip abduction machine form', latp:'wide grip lat pulldown form', mcp:'machine chest press form',
+  fc:'farmers carry technique', spin:'zone 2 cycling', calf:'standing calf raise form', calf2:'standing calf raise form',
   lr21:'dumbbell lateral raise drop set', pua:'push up form', bex:'45 degree back extension form',
   ham:'hammer curl form', rvf:'cable reverse fly rear delt',
 };
+Object.assign(VID,{lpp:VID.lp,fpw:VID.fp,palw:VID.pal});
 
 /* curated DIRECT video links — verified live 5 Aug 2026 (fallback: VID search query) */
 const VIDURL = {
@@ -373,6 +395,8 @@ const VIDSHORT = {
   cur:'https://www.youtube.com/shorts/CrbTqNOlFgE',   // DeltaBolic — Cable Curl
   tri:'https://www.youtube.com/shorts/v2fMq8RjNBw',   // Buff Dudes — Rope Pushdown
 };
+VIDSHORT.lpp=VIDSHORT.lp; VIDSHORT.fpw=VIDSHORT.fp; VIDSHORT.palw=VIDSHORT.pal;
+VIDURL.lpp=VIDURL.lp; VIDURL.fpw=VIDURL.fp; VIDURL.palw=VIDURL.pal;
 
 /* ---------- Utils ---------- */
 const $ = id => document.getElementById(id);
@@ -675,9 +699,10 @@ const App = {
     // lift
     const adj = this.adjustOn;
     let exList = s.ex; if(adj) exList = s.ex; // sets/load shown adjusted per-exercise below
-    let optShown = false;
+    let inSS = false;
     for(const ex of exList){
-      if(ex.opt && !optShown){ h += `<div class="small muted" style="margin:12px 0 6px;text-transform:uppercase;letter-spacing:1px;font-size:11px">Optional — if time allows (~10–15 min)</div>`; optShown=true }
+      if(ex.ss && /1$/.test(ex.ss) && !inSS){
+        h += `<div class="ssgroup ssg-${ex.ss[0]}"><div class="ssghead">↔ SUPERSET ${ex.ss[0]} · no rest inside the pair</div>`; inSS=true }
       const t = exTarget(ex, week);
       let sets = t.sets, load = t.load;
       if(adj){ sets=Math.max(1,sets-1); load=Math.round(load*0.9/ex.step)*ex.step }
@@ -693,7 +718,7 @@ const App = {
             <div class="small muted">${sets} × ${esc(ex.reps)}${load?` @ ~${load}kg`:''} · RPE ${ex.rpe}${ex.rest?` · rest ${Math.round(ex.rest/60*10)/10}′`:''}</div>
             ${prevLine?`<div class="prev">${esc(prevLine)}</div>`:''}
             ${sug?`<div class="prev" style="color:${sug.dir>0?'var(--good)':'var(--text2)'}">Next: <b>${sug.kg}kg</b> — ${esc(sug.note)}</div>`:''}
-            ${logged.length?`<div class="setchips">${logged.map((x,i)=>`<span class="setchip" onclick="event.stopPropagation();App.delSet('${key}','${ex.id}',${i})">${ex.timed?(x.r+'s'+(x.w?(' +'+x.w+'kg'):'')):((x.w||'BW')+'×'+x.r)}${x.rpe?('@'+x.rpe):''}${x.pain?' ⚠':''} ✕</span>`).join('')}</div>`:''}
+            ${logged.length?`<div class="setchips">${logged.map((x,i)=>`<span class="setchip" onclick="event.stopPropagation();App.delSet('${key}','${ex.id}',${i})">${ex.timed?(x.r+'s'+(x.w?(' +'+x.w+'kg'):'')):((x.w||'BW')+'×'+x.r)}${x.rpe?('@'+x.rpe):''}${x.pain?` ⚠${x.painArea?x.painArea+' ':''}${x.pain}/10`:''} ✕</span>`).join('')}</div>`:''}
           </div>
           <div class="muted">${open?'▾':'▸'}</div>
         </div>`;
@@ -737,14 +762,22 @@ const App = {
           <div class="rpe-row" id="rpe-row">${[6,6.5,7,7.5,8,8.5,9,9.5,10].map(v=>
             `<button class="${this.selRpe.v===v?'sel':''}" onclick="App.pickRpe(${v})">${v}</button>`).join('')}</div>
           <div class="row" style="margin:10px 0 4px">
-            <label class="small row" style="gap:6px"><input type="checkbox" id="in-pain" style="width:22px;height:22px"> Pain?</label>
+            <label class="small row" style="gap:6px"><input type="checkbox" id="in-pain" style="width:22px;height:22px" onchange="$('pain-detail').style.display=this.checked?'block':'none'"> Pain?</label>
+          </div>
+          <div id="pain-detail" style="display:none;border:1px solid var(--bad);border-radius:10px;padding:10px;margin-bottom:8px">
+            <div class="small muted" style="margin-bottom:4px">Where?</div>
+            <select id="in-pain-area"><option>Shoulder</option><option>Lower back</option><option>Knee</option><option>Hip</option><option>Elbow</option><option>Wrist</option><option>Other</option></select>
+            <div class="small muted" style="margin:8px 0 4px">How bad? (1 = niggle · 10 = worst)</div>
+            <div class="rpe-row" id="pain-sev">${[1,2,3,4,5,6,7,8,9,10].map(v=>`<button onclick="App.pickPain(${v})">${v}</button>`).join('')}</div>
           </div>
           <button class="primary big" style="margin-top:6px" onclick="App.logSet('${key}','${ex.id}')">${logged.length>=sets?`LOG EXTRA SET ${logged.length+1}`:`LOG SET ${logged.length+1} / ${sets}`}</button>
           ${ex.sub?`<div class="small muted" style="margin-top:8px">Substitute: ${esc(ex.sub)}</div>`:''}
         </div>`;
       }
       h += `</div>`;
+      if(inSS && ex.ss && /2$/.test(ex.ss)){ h += `</div>`; inSS=false }
     }
+    if(inSS) h += `</div>`;
     h += rec.done? `<button class="big" onclick="App.uncomplete('${key}')">Un-complete</button>`
       : rec.skipped? `<button class="big" onclick="App.unskip('${key}')">Skipped — undo</button>`
       : `<div class="row"><button class="primary" style="flex:1;padding:16px;font-size:16px" onclick="App.completeLift('${key}')">Complete session ✓</button>
@@ -762,6 +795,12 @@ const App = {
   toggleVid(id){ this.vidOpen = this.vidOpen===id? null : id; this.render() },
   setStepPref(exId, s){ if(!S.stepPref) S.stepPref={}; S.stepPref[exId]=s; store.save(); this.render() },
   setSetting(k,v){ if(!S.settings) S.settings={}; S.settings[k]=v; store.save(); this.render() },
+  saveProfile(goal){ if(!S.profile) S.profile={};
+    if(goal) S.profile.goal=goal;
+    const f=id=>{const e=$(id); return e? e.value : null};
+    if(f('pf-name')!==null){ S.profile.name=f('pf-name'); S.profile.age=+f('pf-age')||null;
+      S.profile.height=+f('pf-height')||null; S.profile.target=+f('pf-target')||null }
+    store.save(); toast('Profile saved'); this.render() },
   setTheme(t){ if(!S.settings) S.settings={}; S.settings.theme=t; store.save();
     document.documentElement.setAttribute('data-theme', t);
     const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content', t==='light'?'#f4f4f2':'#111110');
@@ -769,15 +808,20 @@ const App = {
   step(which,delta){ const el = which==='w'?$('in-w'):$('in-r');
     el.value = Math.max(0, Math.round((parseFloat(el.value||0)+delta)*100)/100) },
   pickRpe(v){ this.selRpe.v=v; document.querySelectorAll('#rpe-row button').forEach(b=>b.classList.toggle('sel', parseFloat(b.textContent)===v)) },
+  pickPain(v){ this._painSev=v; document.querySelectorAll('#pain-sev button').forEach(b=>b.classList.toggle('sel', parseInt(b.textContent)===v)) },
 
   logSet(key,exId,restIgnored){
     const w = parseFloat($('in-w').value)||0, r = parseInt($('in-r').value)||0;
-    const pain = $('in-pain').checked;
+    const painOn = $('in-pain').checked;
     if(!r){ toast('Enter reps'); return }
     const s = SESSIONS[key]; const ex = s.ex.find(e=>e.id===exId);
     const rec = sessFor(this.viewDate, key);
     if(!rec.sets[exId]) rec.sets[exId]=[];
-    rec.sets[exId].push({w, r, rpe:this.selRpe.v||null, pain, t:Date.now()});
+    const painSev = painOn? (this._painSev||5) : 0;
+    const painArea = painOn? ($('in-pain-area')?$('in-pain-area').value:'') : '';
+    const pain = painSev;
+    rec.sets[exId].push({w, r, rpe:this.selRpe.v||null, pain, painArea, t:Date.now()});
+    this._painSev=null;
     store.save(); vibrate(30);
     this.selRpe={};
     // effective rest (settings can cap everything at 60s)
@@ -793,7 +837,9 @@ const App = {
     let partner = null;
     if(ex.ss){ const g = ex.ss.slice(0,-1);
       const p = s.ex.find(e=>e.id!==ex.id && e.ss && e.ss.slice(0,-1)===g); partner = p? p.name : null }
-    if(pain) toast('Logged — pain noted. >2/10? Modify or substitute.');
+    if(pain) toast(pain<=2? `${painArea} ${pain}/10 noted — OK to continue, monitor it`
+      : pain<=4? `${painArea} ${pain}/10 — modify: −20% load or slower tempo`
+      : `${painArea} ${pain}/10 — STOP this exercise. Use the substitution.`);
     if(doneNow){
       // auto-advance: open next incomplete required exercise
       const idx = s.ex.indexOf(ex);
@@ -938,6 +984,10 @@ Object.assign(App, {
       <div class="card"><h2>This week</h2>
         <div class="spread small"><span>Sessions</span><b>${done} / ${planned}</b></div>
         <div class="dots">${dots}</div>
+        ${(()=>{ let flags=[];
+          for(const d of days){ const rec=S.sessions[d]||{};
+            for(const k in rec){ for(const ei in (rec[k].sets||{})){ (rec[k].sets[ei]||[]).forEach(x=>{ if(x.pain) flags.push((x.painArea||'?')+' '+x.pain+'/10') }) } } }
+          return flags.length? `<div class="small" style="margin-top:6px;color:var(--warn)">⚠ Pain flags this week: ${flags.join(' · ')}</div>` : '' })()}
         <div class="grid3" style="margin-top:10px">
           <div class="stat"><div class="v">${totalSets}</div><div class="l">sets logged</div></div>
           <div class="stat"><div class="v">${pullBench().txt}</div><div class="l">${pullBench().label}</div></div>
@@ -959,7 +1009,22 @@ Object.assign(App, {
   },
 
   render_more(){
+    const p = S.profile||{};
     let h = `<h1>More</h1>
+      <div class="card"><h2>Profile</h2>
+        <div class="grid2">
+          <input id="pf-name" placeholder="Name" value="${esc(p.name||'Matthew')}">
+          <input id="pf-age" type="number" placeholder="Age" value="${p.age||42}">
+          <input id="pf-height" type="number" placeholder="Height (cm)" value="${p.height||185}">
+          <input id="pf-target" type="number" placeholder="Target (kg)" value="${p.target||95}">
+        </div>
+        <div class="small muted" style="margin:8px 0 4px">Primary goal</div>
+        <div class="row" style="flex-wrap:wrap">${['Weight loss','Strength','Functional','Abs'].map(g=>`<button class="tiny ${(p.goal||'Weight loss')===g?'primary':''}" onclick="App.saveProfile('${g}')">${g}</button>`).join('')}</div>
+        <button class="primary big" style="margin-top:10px" onclick="App.saveProfile()">Save profile</button></div>
+      <div class="card"><h2>Current plan</h2><div class="small">
+        <b>Block 8 — Rebuild &amp; Burn</b> · 10 Aug – 20 Sep 2026 · week ${Math.min(Math.max(blockWeek(todayStr()),1),6)} of 6<br>
+        Goal: ${esc(p.goal||'Weight loss')} · 5 lifts + Hyrox ×2 + Saturday double<br>
+        <span class="muted">A plan library with goal-based generation (Weight loss / Strength / Functional / Abs) is specced for the production app. This plan was custom-built from your 14-month history — your saved goal feeds Block 9's design.</span></div></div>
       <div class="card"><h2>How GymOS works</h2><div class="small">
         <b>Today</b> is your dashboard: readiness check, today's session, nutrition and weight. Do readiness first each morning — it drives the day's recommendation.<br><br>
         <b>Readiness scales:</b> sleep &amp; motivation — 5 is good. Soreness &amp; stress — 5 is bad (the ends are labelled). Score ≥70% = train as planned · 50–69% = one-tap reduced session offered in Train · &lt;50% = recovery day recommended.<br><br>
@@ -1011,7 +1076,7 @@ Object.assign(App, {
         Supplements: creatine 5g daily · whey to hit protein · caffeine &lt;400mg, none after 14:00 · vit D · omega-3<br><br>
         Pain rules: 0–2 continue · 3–4 modify (−20% or sub) · 5+ stop &amp; substitute<br><br>
         W5 = deload (auto-applied) · W6 = benchmarks: squat 8RM · bench 8RM · chins AMRAP · RDL 5RM · 2km row · 12′ AMRAP</div></div>
-      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.5 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
+      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.6 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
     $('scr-more').innerHTML = h;
   },
 
