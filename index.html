@@ -185,7 +185,7 @@ svg text{fill:var(--text2);font-size:10px}
 
 <script>
 'use strict';
-/* ================= GymOS v1.6 — Block 8 "Rebuild & Burn" =================
+/* ================= GymOS v1.6.1 — Block 8 "Rebuild & Burn" =================
    Offline-first single-file app. All data in localStorage. Export weekly!  */
 </script>
 <script>
@@ -237,8 +237,8 @@ const SESSIONS = {
      {id:'mcp', name:'Machine Chest Press', sets:3, reps:'12', startKg:40, step:2.5, rpe:'7–8', rest:60, note:'Calibrate first time — lighter than Tuesday, this is volume not intensity.', prev:'—', sub:'Cable press 27kg'},
      {id:'fpw', name:'Face Pulls', sets:3, reps:'15', startKg:25, step:2.5, rpe:'8', rest:0, ss:'D1', note:'Superset with Pallof', prev:'25kg (Jun)', sub:''},
      {id:'palw', name:'Pallof Press', sets:3, reps:'10/side', startKg:20, step:2.5, rpe:'—', rest:60, ss:'D2', note:'Rest after the pair', prev:'20kg (Jun)', sub:''},
-     {id:'fc', name:"Farmer's Carry", sets:3, reps:'40', startKg:24, step:4, rpe:'8', rest:60, note:'~40 m per set · kg per hand. Grip, core, engine.', prev:'—', sub:'Trap-bar carry / heavy DB hold 45s'},
-     {id:'spin', name:'Easy Spin Cool-down', sets:1, reps:'10 min', timed:600, startKg:0, step:1, rpe:'—', rest:0, note:'Conversational pace — keeps a sliver of the aerobic base alive.', prev:'—', sub:'Incline walk 10 min'},
+     {id:'fc', name:"Farmer's Carry", sets:3, reps:'40 m', startKg:24, step:4, rpe:'8', rest:60, note:'40 METRES per set (≈20 m down-and-back, ~55 steps) · load = kg per hand. Log the reps field as metres.', prev:'—', sub:'Trap-bar carry / heavy DB hold 45s'},
+     {id:'spin', name:'Incline Walk Cool-down (Z2)', sets:1, reps:'10 min', timed:600, startKg:0, step:1, rpe:'—', rest:0, note:'Treadmill incline walk, conversational pace — keeps a sliver of the aerobic base alive. Better Hyrox carry-over than the bike.', prev:'—', sub:'Easy spin 10 min'},
     ]},
   lower2:{ title:'Lower 2 — Hinge focus', dur:'~60 min', type:'lift',
     warm:'Bike 4 min · cat-camel ×8 · glute bridge ×12 · hollow hold 2×20s · RDL bar ×8, 50kg ×5, 70kg ×3',
@@ -326,7 +326,7 @@ const VID = {
   po:'cable rope pullover lats', tri2:'skull crusher ez bar technique', cur:'cable bar bicep curl',
   dbg:'dead bug exercise core form', wpu:'weighted pull up technique dip belt',
   abd:'hip abduction machine form', latp:'wide grip lat pulldown form', mcp:'machine chest press form',
-  fc:'farmers carry technique', spin:'zone 2 cycling', calf:'standing calf raise form', calf2:'standing calf raise form',
+  fc:'farmers carry technique', spin:'incline treadmill walking form', calf:'standing calf raise form', calf2:'standing calf raise form',
   lr21:'dumbbell lateral raise drop set', pua:'push up form', bex:'45 degree back extension form',
   ham:'hammer curl form', rvf:'cable reverse fly rear delt',
 };
@@ -1076,7 +1076,7 @@ Object.assign(App, {
         Supplements: creatine 5g daily · whey to hit protein · caffeine &lt;400mg, none after 14:00 · vit D · omega-3<br><br>
         Pain rules: 0–2 continue · 3–4 modify (−20% or sub) · 5+ stop &amp; substitute<br><br>
         W5 = deload (auto-applied) · W6 = benchmarks: squat 8RM · bench 8RM · chins AMRAP · RDL 5RM · 2km row · 12′ AMRAP</div></div>
-      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.6 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
+      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.6.1 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
     $('scr-more').innerHTML = h;
   },
 
