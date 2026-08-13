@@ -185,7 +185,7 @@ svg text{fill:var(--text2);font-size:10px}
 
 <script>
 'use strict';
-/* ================= GymOS v1.6.1 — Block 8 "Rebuild & Burn" =================
+/* ================= GymOS v1.7 — Block 8 "Rebuild & Burn" =================
    Offline-first single-file app. All data in localStorage. Export weekly!  */
 </script>
 <script>
@@ -395,7 +395,22 @@ const VIDSHORT = {
   cur:'https://www.youtube.com/shorts/CrbTqNOlFgE',   // DeltaBolic — Cable Curl
   tri:'https://www.youtube.com/shorts/v2fMq8RjNBw',   // Buff Dudes — Rope Pushdown
 };
+Object.assign(VIDSHORT,{
+  wpu:'https://www.youtube.com/shorts/GnK8anC00QY',   // TylerPath — Weighted Pull-Up (dip belt)
+  dbg:'https://www.youtube.com/shorts/Lxu5u9KaKQE',   // Back In Shape — Dead Bug
+  abd:'https://www.youtube.com/shorts/Z6Aq5upUp4A',   // Hip Abduction machine
+  calf:'https://www.youtube.com/shorts/B30JglFGx8Y',  // Standing Calf Raise
+  pua:'https://www.youtube.com/shorts/zUymek3A64A',   // Criticalbench — Push-Up
+  bex:'https://www.youtube.com/shorts/iMp6dILQpHo',   // 45° Back Extension
+  ham:'https://www.youtube.com/shorts/NyW2fT2gQhM',   // Hammer Curl
+  rvf:'https://www.youtube.com/shorts/FeERX9UwspY',   // DeltaBolic — Rear Delt Cable Fly
+  latp:'https://www.youtube.com/shorts/02Qci1-0Aao',  // Wide Lat Pulldown
+  mcp:'https://www.youtube.com/shorts/Qu7-ceCvq7w',   // DeltaBolic — Machine Chest Press
+  fc:'https://www.youtube.com/shorts/I1Gr76WOlQw',    // Farmer's Walk
+  spin:'https://www.youtube.com/shorts/9Ogcx_W7Id4',  // Incline treadmill walk
+});
 VIDSHORT.lpp=VIDSHORT.lp; VIDSHORT.fpw=VIDSHORT.fp; VIDSHORT.palw=VIDSHORT.pal;
+VIDSHORT.calf2=VIDSHORT.calf; VIDSHORT.lr21=VIDSHORT.lat;
 VIDURL.lpp=VIDURL.lp; VIDURL.fpw=VIDURL.fp; VIDURL.palw=VIDURL.pal;
 
 /* ---------- Utils ---------- */
@@ -767,6 +782,8 @@ const App = {
           <div id="pain-detail" style="display:none;border:1px solid var(--bad);border-radius:10px;padding:10px;margin-bottom:8px">
             <div class="small muted" style="margin-bottom:4px">Where?</div>
             <select id="in-pain-area"><option>Shoulder</option><option>Lower back</option><option>Knee</option><option>Hip</option><option>Elbow</option><option>Wrist</option><option>Other</option></select>
+            <div class="small muted" style="margin:6px 0 4px">Side</div>
+            <div class="rpe-row" id="pain-side">${['Left','Right','Both'].map(v=>`<button onclick="App.pickPainSide('${v}')">${v}</button>`).join('')}</div>
             <div class="small muted" style="margin:8px 0 4px">How bad? (1 = niggle · 10 = worst)</div>
             <div class="rpe-row" id="pain-sev">${[1,2,3,4,5,6,7,8,9,10].map(v=>`<button onclick="App.pickPain(${v})">${v}</button>`).join('')}</div>
           </div>
@@ -809,6 +826,7 @@ const App = {
     el.value = Math.max(0, Math.round((parseFloat(el.value||0)+delta)*100)/100) },
   pickRpe(v){ this.selRpe.v=v; document.querySelectorAll('#rpe-row button').forEach(b=>b.classList.toggle('sel', parseFloat(b.textContent)===v)) },
   pickPain(v){ this._painSev=v; document.querySelectorAll('#pain-sev button').forEach(b=>b.classList.toggle('sel', parseInt(b.textContent)===v)) },
+  pickPainSide(v){ this._painSide=v; document.querySelectorAll('#pain-side button').forEach(b=>b.classList.toggle('sel', b.textContent===v)) },
 
   logSet(key,exId,restIgnored){
     const w = parseFloat($('in-w').value)||0, r = parseInt($('in-r').value)||0;
@@ -818,10 +836,12 @@ const App = {
     const rec = sessFor(this.viewDate, key);
     if(!rec.sets[exId]) rec.sets[exId]=[];
     const painSev = painOn? (this._painSev||5) : 0;
-    const painArea = painOn? ($('in-pain-area')?$('in-pain-area').value:'') : '';
+    let painArea = painOn? ($('in-pain-area')?$('in-pain-area').value:'') : '';
+    const painSide = painOn? (this._painSide||'') : '';
+    if(painSide && painArea && painArea!=='Lower back' && painArea!=='Other') painArea = painSide+' '+painArea;
     const pain = painSev;
     rec.sets[exId].push({w, r, rpe:this.selRpe.v||null, pain, painArea, t:Date.now()});
-    this._painSev=null;
+    this._painSev=null; this._painSide=null;
     store.save(); vibrate(30);
     this.selRpe={};
     // effective rest (settings can cap everything at 60s)
@@ -1076,7 +1096,7 @@ Object.assign(App, {
         Supplements: creatine 5g daily · whey to hit protein · caffeine &lt;400mg, none after 14:00 · vit D · omega-3<br><br>
         Pain rules: 0–2 continue · 3–4 modify (−20% or sub) · 5+ stop &amp; substitute<br><br>
         W5 = deload (auto-applied) · W6 = benchmarks: squat 8RM · bench 8RM · chins AMRAP · RDL 5RM · 2km row · 12′ AMRAP</div></div>
-      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.6.1 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
+      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.7 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
     $('scr-more').innerHTML = h;
   },
 
