@@ -83,6 +83,8 @@ nav .ico{font-size:20px;line-height:1}
   border-radius:8px;padding:3px 8px;font-size:12px;cursor:pointer}
 .setchip.edit{outline:2px solid var(--warn)}
 .prev{font-size:12px;color:var(--muted);margin-top:4px}
+.prevown{color:var(--text);font-size:12.5px;font-weight:600;background:var(--accent-soft);
+  border-radius:6px;padding:2px 6px;display:inline-block}
 /* rest timer bar */
 #timerbar{position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));z-index:60;display:none;
   background:var(--accent);color:#fff;padding:10px 16px;font-weight:700;font-size:18px;
@@ -186,7 +188,7 @@ svg text{fill:var(--text2);font-size:10px}
 
 <script>
 'use strict';
-/* ================= GymOS v1.9 — Block 8 "Rebuild & Burn" =================
+/* ================= GymOS v2.1 — Block 8 "Rebuild & Burn" =================
    Offline-first single-file app. All data in localStorage. Export weekly!  */
 </script>
 <script>
@@ -206,7 +208,7 @@ const SESSIONS = {
      {id:'bsq', name:'Back Squat (tempo 3-0-1)', sets:3, reps:'8', startKg:70, step:2.5, rpe:'≤7', rest:60, note:'RPE-capped re-entry. Target ~90kg×8 by W4.', prev:'Jan: 125kg×6 @3s ecc · none since April', sub:'Hack squat 35–40kg/side'},
      {id:'lp',  name:'45° Leg Press', sets:3, reps:'12', startKg:160, step:5, rpe:'7–8', rest:0, ss:'B1', note:'Superset with side plank', prev:'170kg×15 (Jun)', sub:'Hack squat'},
      {id:'sp1', name:'Side Plank', sets:3, reps:'45s/side', timed:45, startKg:0, step:1, rpe:'—', rest:60, ss:'B2', note:'Superset with leg press — rest after the pair', prev:'45s (Jun)', sub:''},
-     {id:'wl',  name:'DB Walking Lunge', sets:3, reps:'20 steps', startKg:28, step:1, rpe:'8', rest:60, note:'', prev:'28kg (Jun)', sub:'Bulgarian split squat 22.5kg×15'},
+     {id:'wl',  name:'DB Walking Lunge', sets:3, reps:'20 steps', startKg:27.5, step:2.5, rpe:'8', rest:60, note:'', prev:'28kg (Jun)', sub:'Bulgarian split squat 22.5kg×15'},
      {id:'slc', name:'Seated Leg Curl', sets:3, reps:'12–15', startKg:82, step:2.5, rpe:'8', rest:0, ss:'C1', note:'Superset with knee raises', prev:'86kg×15-fail (Jun)', sub:'Lying curl 65kg'},
      {id:'hkr', name:'Hanging Knee Raise', sets:3, reps:'10', startKg:0, step:1, rpe:'—', rest:60, ss:'C2', note:'Controlled, no swing — rest after the pair', prev:'BW×10 (Jun)', sub:''},
      {id:'abd', name:'Hip Abduction', sets:3, reps:'12', startKg:86, step:5, rpe:'8', rest:60, note:'From your Back-Pain day history.', prev:'86–91kg (Mar)', sub:''},
@@ -602,13 +604,19 @@ const App = {
           return `<button class="tiny ${m===cm?'primary':''}" style="flex:1;min-width:0;padding:7px 2px;font-size:12px" onclick="App.setMeal('${m}')">${l}${s.k?`<div style="font-size:10px;font-weight:400;opacity:.85">${s.k}</div>`:''}</button>`}).join('');
         const s=sub(cm);
         const rows=n.items.map((x,i)=>(x.label&&(x.meal||'other')===cm)?`<div class="list-item"><span class="small">${esc(x.label)}${x.grams?` · ${x.grams}g`:''}</span><span class="small"><b>${x.k||0}</b> kcal · ${x.p||0}P <button class="tiny" style="margin-left:6px;padding:2px 8px" onclick="App.delFood(${i})">✕</button></span></div>`:'').join('');
+        const saveUI = rows? (this._savingMeal===cm
+          ? `<div class="row" style="margin-top:6px"><input id="sm-name" placeholder="Name it (e.g. Usual breakfast)" style="flex:1">
+             <button class="primary tiny" onclick="App.confirmSaveMeal('${cm}')">Save</button>
+             <button class="tiny" onclick="App._savingMeal=null;App.render()">✕</button></div>`
+          : `<button class="tiny" style="margin-top:6px" onclick="App._savingMeal='${cm}';App.render()">💾 Save ${cur[1].toLowerCase()} as a meal</button>`) : '';
         return `<div class="row" style="margin-top:10px;gap:5px">${tabs}</div>
         ${s.k?`<div class="small" style="margin-top:8px"><b>${cur[1]}</b>: ${s.k} kcal · ${s.p}g P · ${s.c}g C · ${s.f}g F</div>`:''}
-        ${rows||`<div class="small muted" style="margin-top:8px">Nothing in ${cur[1].toLowerCase()} yet — add below.</div>`}`;
+        ${rows||`<div class="small muted" style="margin-top:8px">Nothing in ${cur[1].toLowerCase()} yet — add below.</div>`}${saveUI}`;
       })()}
       <div style="margin-top:10px"><input id="nut-q" placeholder="🔍 Search food… (chicken, eggs, rice)" oninput="App.nutSearch()" autocomplete="off"></div>
       <div id="nut-results"></div>
       <div id="nut-picked"></div>
+      ${(S.savedMeals&&S.savedMeals.length)?`<div class="small muted" style="margin-top:8px">Saved meals</div><div class="setchips">${S.savedMeals.map((m,i)=>`<span class="setchip" style="border-color:var(--good)" onclick="App.addSavedMeal(${i})">★ ${esc(m.name)} · ${m.items.reduce((a,x)=>a+(x.k||0),0)} kcal</span>`).join('')}</div>`:''}
       ${(S.recentFoods&&S.recentFoods.length)?`<div class="small muted" style="margin-top:8px">Recent</div><div class="setchips">${S.recentFoods.map((r,i)=>`<span class="setchip" onclick="App.reAdd(${i})">+ ${esc(r.name)} ${r.grams}g</span>`).join('')}</div>`:''}
       <details style="margin-top:8px"><summary class="small muted">Manual entry (kcal &amp; macros)</summary>
       <div class="grid2" style="margin-top:8px">
@@ -727,12 +735,13 @@ const App = {
       const sug = isDeload(week)? null : suggestNext(ex, d);
       const prevLine = own? `Last: ${own.sets.map(x=>ex.timed?(x.r+'s'+(x.w?(' +'+x.w+'kg'):'')):`${x.w||'BW'}×${x.r}${x.rpe?('@'+x.rpe):''}`).join(' · ')} (${fmtDate(own.d)})`
         : (ex.prev? 'History: '+ex.prev : '');
+      const prevCls = own? 'prev prevown' : 'prev';
       const open = this.openEx===key+'.'+ex.id;
       h += `<div class="ex ${open?'open':''}" id="ex-${ex.id}">
         <div class="ex-head" onclick="App.toggleEx('${key}','${ex.id}')">
           <div><div class="name">${esc(ex.name)}${ex.ss?`<span class="sschip">SS ${ex.ss}</span>`:''}${logged.length>=sets&&logged.length>0?`<span class="sschip" style="border-color:var(--good);color:var(--good)">✓</span>`:''}</div>
             <div class="small muted">${sets} × ${esc(ex.reps)}${load?` @ ~${load}kg`:''} · RPE ${ex.rpe}${ex.rest?` · rest ${Math.round(ex.rest/60*10)/10}′`:''}</div>
-            ${prevLine?`<div class="prev">${esc(prevLine)}</div>`:''}
+            ${prevLine?`<div class="${prevCls}">${esc(prevLine)}</div>`:''}
             ${sug?`<div class="prev" style="color:${sug.dir>0?'var(--good)':'var(--text2)'}">Next: <b>${sug.kg}kg</b> — ${esc(sug.note)}</div>`:''}
             ${logged.length?`<div class="setchips">${logged.map((x,i)=>`<span class="setchip ${this._editing&&this._editing.exId===ex.id&&this._editing.idx===i?'edit':''}" onclick="event.stopPropagation();App.editSet('${key}','${ex.id}',${i})">${ex.timed?(x.r+'s'+(x.w?(' +'+x.w+'kg'):'')):((x.w||'BW')+'×'+x.r)}${x.rpe?('@'+x.rpe):''}${x.pain?` ⚠${x.painArea?x.painArea+' ':''}${x.pain}/10`:''}</span>`).join('')}</div>`:''}
           </div>
@@ -846,7 +855,8 @@ const App = {
     if(f('pf-name')!==null){ S.profile.name=f('pf-name'); S.profile.age=+f('pf-age')||null;
       S.profile.height=+f('pf-height')||null; S.profile.target=+f('pf-target')||null;
       if(f('pf-loc')!==null) S.profile.loc=f('pf-loc');
-      if(f('pf-niggles')!==null) S.profile.niggles=f('pf-niggles') }
+      if(f('pf-niggles')!==null) S.profile.niggles=f('pf-niggles');
+      if(f('pf-activities')!==null) S.profile.activities=f('pf-activities') }
     store.save(); toast('Profile saved'); this.render() },
   setTheme(t){ if(!S.settings) S.settings={}; S.settings.theme=t; store.save();
     document.documentElement.setAttribute('data-theme', t);
@@ -896,21 +906,33 @@ const App = {
     if(pain) toast(pain<=2? `${painArea} ${pain}/10 noted — OK to continue, monitor it`
       : pain<=4? `${painArea} ${pain}/10 — modify: −20% load or slower tempo`
       : `${painArea} ${pain}/10 — STOP this exercise. Use the substitution.`);
+    const plannedFor = e2 => { let p2=e2.sets; if(isDeload(week)) p2=Math.max(1,p2-1); if(this.adjustOn) p2=Math.max(1,p2-1); return p2 };
+    const partnerEx = ex.ss? s.ex.find(e=>e.id!==ex.id && e.ss && e.ss.slice(0,-1)===ex.ss.slice(0,-1)) : null;
+    const partnerOpen = partnerEx && ((rec.sets[partnerEx.id]||[]).length < plannedFor(partnerEx));
     if(doneNow){
-      // auto-advance: open next incomplete required exercise
-      const idx = s.ex.indexOf(ex);
+      // auto-advance: open next incomplete required exercise (partner first if it still has sets)
       let next = null;
-      for(let i=idx+1;i<s.ex.length;i++){ const e2=s.ex[i]; if(e2.opt) continue;
-        let p2=e2.sets; if(isDeload(week)) p2=Math.max(1,p2-1); if(this.adjustOn) p2=Math.max(1,p2-1);
-        if(((rec.sets[e2.id]||[]).length) < p2){ next=e2; break } }
+      if(partnerOpen) next = partnerEx;
+      else { const idx = s.ex.indexOf(ex);
+        for(let i=idx+1;i<s.ex.length;i++){ const e2=s.ex[i]; if(e2.opt) continue;
+          if(((rec.sets[e2.id]||[]).length) < plannedFor(e2)){ next=e2; break } } }
       this.openEx = next? key+'.'+next.id : null;
       if(!pain) toast(`${ex.name} done ✓${next? ' → '+next.name : ''}`);
       if(rest>0) this.startTimer(rest, next? next.name : null);
-      else if(ex.ss) this.showGo(partner);
     } else {
-      if(!pain && rest===0 && ex.ss) {} else if(!pain) toast('Set logged');
-      if(rest>0) this.startTimer(rest, null);
-      else if(ex.ss) this.showGo(partner);
+      // superset alternation: jump straight to the partner (no rest inside the pair)
+      if(ex.ss && rest===0 && partnerOpen){
+        this.openEx = key+'.'+partnerEx.id;
+        if(!pain) toast(`Logged → ${partnerEx.name}`);
+      } else if(ex.ss && rest>0 && partnerOpen){
+        this.openEx = key+'.'+partnerEx.id;   // rest done → back to the pair's first exercise
+        if(!pain) toast('Set logged — rest, then '+partnerEx.name);
+        this.startTimer(rest, partnerEx.name);
+      } else {
+        if(!pain) toast('Set logged');
+        if(rest>0) this.startTimer(rest, null);
+      }
+      if(ex.ss && rest===0 && !partnerOpen && !pain) toast('Set logged');
     }
     this.render();
   },
@@ -933,13 +955,6 @@ const App = {
     $('tf-next').textContent = nextLabel? ('Next: '+nextLabel) : '';
     $('timerfull').classList.add('show');
     this._tick();
-  },
-  showGo(partnerName){
-    this.stopTimer(); this._goMode=true;
-    $('tf-label').textContent='SUPERSET — NO REST';
-    $('tf-count').textContent='GO →'; $('tf-count').classList.add('go');
-    $('tf-next').textContent = partnerName? ('Straight to: '+partnerName) : 'Straight to the partner exercise';
-    $('timerfull').classList.add('show');
   },
   _tick(){
     if(this.timer) clearTimeout(this.timer);
@@ -1019,7 +1034,9 @@ Object.assign(App, {
       const wd=new Date(d+'T12:00').getDay(); const plan=WEEKPLAN[wd].filter(k=>SESSIONS[k].type!=='rest');
       const rec=S.sessions[d]||{};
       for(const k of plan){ planned++;
-        const r=rec[k]; const isDone=r&&r.done;
+        const r=rec[k];
+        const hasSets = r && ((r.sets && Object.values(r.sets).some(a=>a&&a.length)) || (r.cardio && Object.values(r.cardio).some(v=>v)));
+        const isDone = r && (r.done || hasSets);
         if(isDone) done++;
         const past = d<today;
         dots += `<div class="dot ${isDone?'done':(past?'missed':'')}" title="${d} ${k}"></div>`;
@@ -1078,6 +1095,7 @@ Object.assign(App, {
           <select id="pf-loc">${['Gym','Home','Both'].map(o=>`<option ${((S.profile&&S.profile.loc)||'Gym')===o?'selected':''}>${o}</option>`).join('')}</select>
           <input id="pf-niggles" placeholder="Current niggles (e.g. right knee)" value="${esc((S.profile&&S.profile.niggles)||'')}">
         </div>
+        <input id="pf-activities" style="margin-top:8px" placeholder="Other activities (e.g. Hyrox, Pilates, surfing)" value="${esc((S.profile&&S.profile.activities)||'Hyrox ×2, Reformer Pilates, surfing when possible')}">
         <div class="small muted" style="margin:8px 0 4px">Primary goal</div>
         <div class="row" style="flex-wrap:wrap">${['Weight loss','Strength','Functional','Abs'].map(g=>`<button class="tiny ${(p.goal||'Weight loss')===g?'primary':''}" onclick="App.saveProfile('${g}')">${g}</button>`).join('')}</div>
         <button class="primary big" style="margin-top:10px" onclick="App.saveProfile()">Save profile</button></div>
@@ -1093,6 +1111,7 @@ Object.assign(App, {
         <b>Report</b>: weekly completion, sets, chin-up benchmark, nutrition averages, weight trend.<br><br>
         <b>Deload &amp; test weeks</b> (W5, W6) adjust automatically from the calendar.<br><br>
         <b>Export weekly</b> (below) — your data lives only on this device until the native app arrives.</div></div>
+      ${(S.savedMeals&&S.savedMeals.length)?`<div class="card"><h2>Saved meals</h2>${S.savedMeals.map((m,i)=>`<div class="list-item"><span class="small">★ ${esc(m.name)} · ${m.items.length} items · ${m.items.reduce((a,x)=>a+(x.k||0),0)} kcal</span><button class="tiny" onclick="App.delSavedMeal(${i})">✕</button></div>`).join('')}</div>`:''}
       ${(()=>{ const allEx = Object.values(SESSIONS).filter(s=>s.ex).flatMap(s=>s.ex);
         const seen={}; const uniq = allEx.filter(e=>seen[e.id]?false:(seen[e.id]=true));
         const done = uniq.filter(e=>S.mastered[e.id]);
@@ -1136,7 +1155,7 @@ Object.assign(App, {
         Supplements: creatine 5g daily · whey to hit protein · caffeine &lt;400mg, none after 14:00 · vit D · omega-3<br><br>
         Pain rules: 0–2 continue · 3–4 modify (−20% or sub) · 5+ stop &amp; substitute<br><br>
         W5 = deload (auto-applied) · W6 = benchmarks: squat 8RM · bench 8RM · chins AMRAP · RDL 5RM · 2km row · 12′ AMRAP</div></div>
-      <div class="card"><h2>About</h2><div class="small muted">GymOS v1.9 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
+      <div class="card"><h2>About</h2><div class="small muted">GymOS v2.1 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
     $('scr-more').innerHTML = h;
   },
 
@@ -1266,7 +1285,28 @@ function mealLabel(m){ return {breakfast:'Breakfast',lunch:'Lunch',dinner:'Dinne
 
 Object.assign(App, {
   _picked:null, _meal:null,
-  setMeal(m){ this._meal=m; this._picked=null; this.render() },
+  setMeal(m){ this._meal=m; this._picked=null; this._savingMeal=null; this.render() },
+  confirmSaveMeal(m){
+    const name = ($('sm-name')&&$('sm-name').value.trim())||'';
+    if(!name){ toast('Give it a name'); return }
+    const n = nut(todayStr());
+    const items = n.items.filter(x=>x.label&&(x.meal||'other')===m)
+      .map(x=>({label:x.label, grams:x.grams||0, k:x.k||0, p:x.p||0, c:x.c||0, f:x.f||0}));
+    if(!items.length){ toast('Nothing to save'); return }
+    if(!S.savedMeals) S.savedMeals=[];
+    S.savedMeals = S.savedMeals.filter(sm=>sm.name!==name);
+    S.savedMeals.push({name, items});
+    this._savingMeal=null; store.save(); toast(`Saved "${name}" ✓`); this.render();
+  },
+  addSavedMeal(i){
+    const sm = S.savedMeals[i]; if(!sm) return;
+    const n = nut(todayStr()); n.c=n.c||0; n.f=n.f||0;
+    const meal = curMealKey(); let tot=0;
+    for(const x of sm.items){ n.kcal+=x.k; n.pro+=x.p; n.c+=x.c; n.f+=x.f; tot+=x.k;
+      n.items.push({t:Date.now(), label:x.label, grams:x.grams, k:x.k, p:x.p, c:x.c, f:x.f, meal}) }
+    store.save(); toast(`Added "${sm.name}" — ${tot} kcal to ${mealLabel(meal)}`); this.render();
+  },
+  delSavedMeal(i){ S.savedMeals.splice(i,1); store.save(); this.render() },
 
   nutSearch(){
     const q = $('nut-q').value.trim().toLowerCase();
