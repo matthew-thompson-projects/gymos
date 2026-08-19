@@ -188,7 +188,7 @@ svg text{fill:var(--text2);font-size:10px}
 
 <script>
 'use strict';
-/* ================= GymOS v2.1 — Block 8 "Rebuild & Burn" =================
+/* ================= GymOS v2.3 — Block 8 "Rebuild & Burn" =================
    Offline-first single-file app. All data in localStorage. Export weekly!  */
 </script>
 <script>
@@ -217,7 +217,7 @@ const SESSIONS = {
   upperpush:{ title:'Upper Push', dur:'~60 min', type:'lift', second:'Hyrox @ PowerX (lunch)',
     warm:'Row 3 min · cable int/ext rotations 1×12 @5–7.5kg (non-negotiable) · band pull-aparts ×15 · push-ups ×10',
     ex:[
-     {id:'bp',  name:'Barbell Bench Press (tempo 3-1-1)', sets:3, reps:'10', startKg:50, step:2.5, rpe:'≤7', rest:60, note:'First barbell bench since Oct 2025. Shoulder >2/10 → DB flat press.', prev:'Oct 25: 70kg×12 slow tempo', sub:'DB flat press 26kg / cable press 27kg'},
+     {id:'dbfp', name:'DB Flat Press (tempo 3-1-1)', sets:3, reps:'10', startKg:26, step:2.5, rpe:'≤7', rest:60, note:'Replaces barbell bench — 3rd shoulder flare on that bar path since Oct 25, so it\'s retired. Slight tuck, DBs free to find your natural groove. Any signal >2/10 → floor press.', prev:'BB bench 50kg×10 this block · DB floor press 22.5–28kg (rehab era)', sub:'DB floor press / cable press 27kg'},
      {id:'dbi', name:'DB Incline Press', sets:3, reps:'12', startKg:27.5, step:2.5, rpe:'8', rest:0, ss:'B1', note:'Superset with hollow hold (your coach\'s original pairing)', prev:'27.5–28kg×12 (Jun)', sub:'Machine chest press'},
      {id:'hh',  name:'Hollow Hold', sets:3, reps:'45s', timed:45, startKg:0, step:1, rpe:'—', rest:60, ss:'B2', note:'Rest after the pair', prev:'45s (Jun)', sub:''},
      {id:'dbs', name:'Seated DB Shoulder Press', sets:3, reps:'10', startKg:20, step:2.5, rpe:'7–8', rest:60, note:'Calibrate first session — old log ambiguous.', prev:'"DB Press" 35–36kg (unit unclear)', sub:'Landmine press 20kg/side'},
@@ -225,23 +225,25 @@ const SESSIONS = {
      {id:'lat', name:'Cable Lateral Raise', sets:3, reps:'12', startKg:10, step:1.25, rpe:'8', rest:0, ss:'E1', note:'Scapular plane — superset with face pulls', prev:'10kg (Jun)', sub:'DB lateral raise'},
      {id:'fp',  name:'Face Pulls', sets:3, reps:'12–15', startKg:25, step:2.5, rpe:'8', rest:60, ss:'E2', note:'Rest after the pair', prev:'25kg (Jun)', sub:''},
      {id:'tri', name:'Rope Triceps Extension', sets:3, reps:'12', startKg:25, step:2.5, rpe:'8', rest:60, note:'', prev:'25kg (Jun)', sub:'Skull crusher 20kg'},
-     {id:'lr21', name:'DB Lateral Raise (drop set)', sets:2, reps:'15', startKg:7.5, step:1.25, rpe:'9', rest:60, note:'Drop one weight mid-set (your coach\'s old pattern).', prev:'12/10/8kg dropsets (Jan)', sub:''},
+     {id:'lr21', name:'DB Lateral Raise — triple drop', sets:3, reps:'12', drops:[10,7.5,5], startKg:10, step:1.25, rpe:'9–10', rest:60, note:'12 reps at 10kg → 12 at 7.5 → 12 at 5, straight down the rack, no rest inside the chain. Rest after the full drop.', prev:'12/10/8kg dropsets (Jan)', sub:'Cable lateral drop set'},
      {id:'pua', name:'Push-Up AMRAP', sets:2, reps:'AMRAP', startKg:0, step:1, rpe:'9', rest:60, note:'Session finisher.', prev:'—', sub:''},
     ]},
   z2:{ title:'Zone 2 — deliberately easy', dur:'40–45 min', type:'cardio',
     warm:'Straight in — first 5 min extra easy.',
     desc:'Held in reserve (deload-week Wednesday + readiness downgrades). 60–70% max HR, conversational.',
     fields:['Modality','Minutes','Avg HR','Distance'] },
-  fullbody:{ title:'Full Body — Pump & Carry', dur:'~60 min', type:'lift',
-    warm:'Bike 4 min easy · band pull-aparts ×15 · BW squats ×10 · push-ups ×10',
+  fullbody:{ title:'Full Body — Engine Circuit', dur:'~60 min', type:'lift',
+    warm:'Bike 4 min · band pull-aparts ×15 · light goblet squat ×10 · empty-bar push press ×8',
     ex:[
-     {id:'lpp', name:'Leg Press (pump)', sets:3, reps:'15', startKg:140, step:5, rpe:'7', rest:60, note:'Deliberately lighter than Monday — pump, not grind. Tomorrow is hinge day.', prev:'170kg×15 best', sub:'Hack squat'},
-     {id:'latp', name:'Lat Pulldown (wide)', sets:3, reps:'12', startKg:65, step:2.5, rpe:'7–8', rest:60, note:'', prev:'Oct 25: 75–77kg×10', sub:'Machine row'},
-     {id:'mcp', name:'Machine Chest Press', sets:3, reps:'12', startKg:40, step:2.5, rpe:'7–8', rest:60, note:'Calibrate first time — lighter than Tuesday, this is volume not intensity.', prev:'—', sub:'Cable press 27kg'},
-     {id:'fpw', name:'Face Pulls', sets:3, reps:'15', startKg:25, step:2.5, rpe:'8', rest:0, ss:'D1', note:'Superset with Pallof', prev:'25kg (Jun)', sub:''},
-     {id:'palw', name:'Pallof Press', sets:3, reps:'10/side', startKg:20, step:2.5, rpe:'—', rest:60, ss:'D2', note:'Rest after the pair', prev:'20kg (Jun)', sub:''},
-     {id:'fc', name:"Farmer's Carry", sets:3, reps:'40 m', startKg:24, step:4, rpe:'8', rest:60, note:'40 METRES per set (≈20 m down-and-back, ~55 steps) · load = kg per hand. Log the reps field as metres.', prev:'—', sub:'Trap-bar carry / heavy DB hold 45s'},
-     {id:'spin', name:'Incline Walk Cool-down (Z2)', sets:1, reps:'10 min', timed:600, startKg:0, step:1, rpe:'—', rest:0, note:'Treadmill incline walk, conversational pace — keeps a sliver of the aerobic base alive. Better Hyrox carry-over than the bike.', prev:'—', sub:'Easy spin 10 min'},
+     {id:'gsq', name:'KB Goblet Squat', sets:3, reps:'12', startKg:24, step:4, rpe:'8', rest:0, ss:'A1', note:'Circuit A — squat → push press → row, no rest inside, 60s between rounds.', prev:'—', sub:'DB goblet squat'},
+     {id:'pp',  name:'Barbell Push Press', sets:3, reps:'10', startKg:35, step:2.5, rpe:'8', rest:0, ss:'A2', note:'Leg drive, crisp lockout. Your 45kg strict press says start ~35. SHOULDER RULE: any signal >2/10 → landmine press instead, today.', prev:'Strict press 45kg×10', sub:'Landmine press / DB push press 17.5kg/hand'},
+     {id:'hdr', name:'Heavy DB Row', sets:3, reps:'10/side', startKg:32.5, step:2.5, rpe:'8', rest:60, ss:'A3', note:'Last of the trio — 60s after, then back to squats.', prev:'—', sub:'Chest-supported row 32kg'},
+     {id:'fc',  name:"Farmer's Carry", sets:3, reps:'40 m', startKg:24, step:4, rpe:'8', rest:0, ss:'B1', note:'Carry medley — farmer → suitcase → front rack, no rest inside.', prev:'24kg/hand (last week)', sub:'Trap-bar carry'},
+     {id:'suc', name:'Suitcase Carry', sets:3, reps:'20 m/side', startKg:24, step:4, rpe:'8', rest:0, ss:'B2', note:'One hand — fight the side lean. Swap hands at 20 m.', prev:'—', sub:'Single-DB carry'},
+     {id:'frc', name:'Front-Rack Carry', sets:3, reps:'20 m', startKg:20, step:2.5, rpe:'8', rest:60, ss:'B3', note:'DBs racked at shoulders, ribs down. 60s after, back to farmers.', prev:'—', sub:'Double-KB rack carry'},
+     {id:'awr', name:'Ab Wheel Rollout', sets:3, reps:'8–10', startKg:0, step:1, rpe:'8', rest:0, ss:'C1', note:'From knees. Stop before the lower back sags — shorten the rollout rather than arch.', prev:'—', sub:'Plank walkout'},
+     {id:'hlr', name:'Hanging Leg Raise', sets:3, reps:'8–12', startKg:0, step:1, rpe:'8', rest:60, ss:'C2', note:'Strict, no swing. Knee raises if straight legs break form.', prev:'Knee raises BW×10', sub:'Hanging knee raise'},
+     {id:'emom', name:'EMOM 8 — bike + burpees', sets:1, reps:'8 min', timed:480, startKg:0, step:1, rpe:'9', rest:0, note:'Odd minutes: 10 cal bike. Even minutes: 8 burpees. Whatever\'s left of the minute is your rest. Finisher — empty the tank.', prev:'—', sub:'Ski erg cals / row cals'},
     ]},
   lower2:{ title:'Lower 2 — Hinge focus', dur:'~60 min', type:'lift',
     warm:'Bike 4 min · cat-camel ×8 · glute bridge ×12 · hollow hold 2×20s · RDL bar ×8, 50kg ×5, 70kg ×3',
@@ -327,7 +329,7 @@ const VID = {
   chin:'strict chin up full range technique', bbr:'barbell bent over row form',
   csr:'chest supported dumbbell row bench', ohp:'standing barbell overhead press technique',
   po:'cable rope pullover lats', tri2:'skull crusher ez bar technique', cur:'cable bar bicep curl',
-  dbg:'dead bug exercise core form', wpu:'weighted pull up technique dip belt',
+  dbg:'dead bug exercise core form', wpu:'weighted pull up technique dip belt', dbfp:'flat dumbbell bench press form',
   abd:'hip abduction machine form', latp:'wide grip lat pulldown form', mcp:'machine chest press form',
   fc:'farmers carry technique', spin:'incline treadmill walking form', calf:'standing calf raise form', calf2:'standing calf raise form',
   lr21:'dumbbell lateral raise drop set', pua:'push up form', bex:'45 degree back extension form',
@@ -411,6 +413,15 @@ Object.assign(VIDSHORT,{
   mcp:'https://www.youtube.com/shorts/Qu7-ceCvq7w',   // DeltaBolic — Machine Chest Press
   fc:'https://www.youtube.com/shorts/I1Gr76WOlQw',    // Farmer's Walk
   spin:'https://www.youtube.com/shorts/9Ogcx_W7Id4',  // Incline treadmill walk
+  dbfp:'https://www.youtube.com/shorts/SidmT09GXz8',  // Schaum Fitness — Flat DB Press under 60s
+  gsq:'https://www.youtube.com/shorts/0eg1XZgNjOE',   // Judd Lienhard — Goblet Squat
+  pp:'https://www.youtube.com/shorts/VbRfCYe-ma0',    // Push Press
+  hdr:'https://www.youtube.com/shorts/nveMA9ko3yk',   // SWEAT — Single-Arm DB Row
+  suc:'https://www.youtube.com/shorts/IBY3l_q5f-8',   // Suitcase Carry
+  frc:'https://www.youtube.com/shorts/2REKAyfn5tQ',   // Front-Rack Carry
+  awr:'https://www.youtube.com/shorts/YgIf-8yklUA',   // Squat University — Ab Wheel
+  hlr:'https://www.youtube.com/shorts/2n4UqRIJyk4',   // Hanging Leg Raise
+  emom:'https://www.youtube.com/shorts/zlYA1SENYG4',  // Burpee form
 });
 VIDSHORT.lpp=VIDSHORT.lp; VIDSHORT.fpw=VIDSHORT.fp; VIDSHORT.palw=VIDSHORT.pal;
 VIDSHORT.calf2=VIDSHORT.calf; VIDSHORT.lr21=VIDSHORT.lat; VIDSHORT.lp2=VIDSHORT.lp; VIDURL.lp2=VIDURL.lp;
@@ -467,7 +478,7 @@ function sessFor(dateStr, key){ const s=sess(dateStr); if(!s[key]) s[key]={sets:
 /* progression suggestion: based on last completed exposure of this exercise */
 function parseRpeCap(r){ const m=String(r).match(/(\d+(?:\.\d+)?)(?!.*\d)/); return m?parseFloat(m[1]):null }
 function suggestNext(ex, beforeDate){
-  if(ex.timed || !/^\d/.test(String(ex.reps))) return null;      // timed / AMRAP: no load suggestion
+  if(ex.timed || ex.drops || !/^\d/.test(String(ex.reps))) return null;      // timed / AMRAP: no load suggestion
   const last = lastLogged(ex.id, beforeDate); if(!last) return null;
   const sets = last.sets;
   const targetReps = parseInt(ex.reps), cap = parseRpeCap(ex.rpe)||8;
@@ -723,10 +734,13 @@ const App = {
     // lift
     const adj = this.adjustOn;
     let exList = s.ex; if(adj) exList = s.ex; // sets/load shown adjusted per-exercise below
-    let inSS = false;
+    let curG = null;
     for(const ex of exList){
-      if(ex.ss && /1$/.test(ex.ss) && !inSS){
-        h += `<div class="ssgroup ssg-${ex.ss[0]}"><div class="ssghead">↔ SUPERSET ${ex.ss[0]} · no rest inside the pair</div>`; inSS=true }
+      const exG = ex.ss? ex.ss.replace(/\d+$/,'') : null;
+      if(curG && exG!==curG){ h += `</div>`; curG=null }
+      if(exG && exG!==curG){
+        const n = exList.filter(e=>e.ss && e.ss.replace(/\d+$/,'')===exG).length;
+        h += `<div class="ssgroup ssg-${exG}"><div class="ssghead">↔ ${n>2?'CIRCUIT':'SUPERSET'} ${exG} · no rest inside</div>`; curG=exG }
       const t = exTarget(ex, week);
       let sets = t.sets, load = t.load;
       if(adj){ sets=Math.max(1,sets-1); load=Math.round(load*0.9/ex.step)*ex.step }
@@ -740,7 +754,7 @@ const App = {
       h += `<div class="ex ${open?'open':''}" id="ex-${ex.id}">
         <div class="ex-head" onclick="App.toggleEx('${key}','${ex.id}')">
           <div><div class="name">${esc(ex.name)}${ex.ss?`<span class="sschip">SS ${ex.ss}</span>`:''}${logged.length>=sets&&logged.length>0?`<span class="sschip" style="border-color:var(--good);color:var(--good)">✓</span>`:''}</div>
-            <div class="small muted">${sets} × ${esc(ex.reps)}${load?` @ ~${load}kg`:''} · RPE ${ex.rpe}${ex.rest?` · rest ${Math.round(ex.rest/60*10)/10}′`:''}</div>
+            <div class="small muted">${sets} × ${esc(ex.reps)}${ex.drops?` @ ${ex.drops.join('→')}kg drop`:(load?` @ ~${load}kg`:'')} · RPE ${ex.rpe}${ex.rest?` · rest ${Math.round(ex.rest/60*10)/10}′`:''}</div>
             ${prevLine?`<div class="${prevCls}">${esc(prevLine)}</div>`:''}
             ${sug?`<div class="prev" style="color:${sug.dir>0?'var(--good)':'var(--text2)'}">Next: <b>${sug.kg}kg</b> — ${esc(sug.note)}</div>`:''}
             ${logged.length?`<div class="setchips">${logged.map((x,i)=>`<span class="setchip ${this._editing&&this._editing.exId===ex.id&&this._editing.idx===i?'edit':''}" onclick="event.stopPropagation();App.editSet('${key}','${ex.id}',${i})">${ex.timed?(x.r+'s'+(x.w?(' +'+x.w+'kg'):'')):((x.w||'BW')+'×'+x.r)}${x.rpe?('@'+x.rpe):''}${x.pain?` ⚠${x.painArea?x.painArea+' ':''}${x.pain}/10`:''}</span>`).join('')}</div>`:''}
@@ -752,7 +766,7 @@ const App = {
         const eff = (S.stepPref&&S.stepPref[ex.id])||ex.step;
         const edIdx = (this._editing&&this._editing.key===key&&this._editing.exId===ex.id)? this._editing.idx : null;
         const edSet = edIdx!=null? logged[edIdx] : null;
-        const wDefault = edSet? edSet.w : (lastSet? lastSet.w : (sug? sug.kg : load));
+        const wDefault = edSet? edSet.w : (ex.drops? ex.drops[Math.min(logged.length, ex.drops.length-1)] : (lastSet? lastSet.w : (sug? sug.kg : load)));
         const rDefault = edSet? edSet.r : (lastSet? lastSet.r : (ex.timed || parseInt(ex.reps) || 10));
         h += `<div class="ex-body">
           ${ex.note?`<div class="small" style="margin-bottom:8px">📋 ${esc(ex.note)}</div>`:''}
@@ -808,9 +822,8 @@ const App = {
         </div>`;
       }
       h += `</div>`;
-      if(inSS && ex.ss && /2$/.test(ex.ss)){ h += `</div>`; inSS=false }
     }
-    if(inSS) h += `</div>`;
+    if(curG) h += `</div>`;
     h += rec.done? `<button class="big" onclick="App.uncomplete('${key}')">Un-complete</button>${this.debriefHtml(key,rec)}`
       : rec.skipped? `<button class="big" onclick="App.unskip('${key}')">Skipped — undo</button>`
       : `<div class="row"><button class="primary" style="flex:1;padding:16px;font-size:16px" onclick="App.completeLift('${key}')">Complete session ✓</button>
@@ -899,16 +912,23 @@ const App = {
     if(isDeload(week)) planned = Math.max(1, planned-1);
     if(this.adjustOn) planned = Math.max(1, planned-1);
     const doneNow = rec.sets[exId].length >= planned;
-    // superset partner name
-    let partner = null;
-    if(ex.ss){ const g = ex.ss.slice(0,-1);
-      const p = s.ex.find(e=>e.id!==ex.id && e.ss && e.ss.slice(0,-1)===g); partner = p? p.name : null }
     if(pain) toast(pain<=2? `${painArea} ${pain}/10 noted — OK to continue, monitor it`
       : pain<=4? `${painArea} ${pain}/10 — modify: −20% load or slower tempo`
       : `${painArea} ${pain}/10 — STOP this exercise. Use the substitution.`);
     const plannedFor = e2 => { let p2=e2.sets; if(isDeload(week)) p2=Math.max(1,p2-1); if(this.adjustOn) p2=Math.max(1,p2-1); return p2 };
-    const partnerEx = ex.ss? s.ex.find(e=>e.id!==ex.id && e.ss && e.ss.slice(0,-1)===ex.ss.slice(0,-1)) : null;
-    const partnerOpen = partnerEx && ((rec.sets[partnerEx.id]||[]).length < plannedFor(partnerEx));
+    // drop set: no rest, no jump — stay here, next weight pre-filled
+    if(ex.drops && rec.sets[exId].length < plannedFor(ex)){
+      if(!pain) toast(`Drop → ${ex.drops[Math.min(rec.sets[exId].length, ex.drops.length-1)]}kg — no rest`);
+      this.render(); return;
+    }
+    const groupOf = e => e.ss? e.ss.replace(/\d+$/,'') : null;
+    const exG = groupOf(ex);
+    const members = exG? s.ex.filter(e=>groupOf(e)===exG) : [];
+    let nextM = null;
+    if(exG){ const mi = members.indexOf(ex);
+      for(let k=1;k<members.length;k++){ const cand = members[(mi+k)%members.length];
+        if(((rec.sets[cand.id]||[]).length) < plannedFor(cand)){ nextM=cand; break } } }
+    const partnerEx = nextM, partnerOpen = !!nextM;
     if(doneNow){
       // auto-advance: open next incomplete required exercise (partner first if it still has sets)
       let next = null;
@@ -1154,8 +1174,8 @@ Object.assign(App, {
         Nutrition: ${BLOCK.kcal.train} kcal train / ${BLOCK.kcal.rest} rest · ${BLOCK.protein}g protein · 38g fibre · 3–3.5L water<br><br>
         Supplements: creatine 5g daily · whey to hit protein · caffeine &lt;400mg, none after 14:00 · vit D · omega-3<br><br>
         Pain rules: 0–2 continue · 3–4 modify (−20% or sub) · 5+ stop &amp; substitute<br><br>
-        W5 = deload (auto-applied) · W6 = benchmarks: squat 8RM · bench 8RM · chins AMRAP · RDL 5RM · 2km row · 12′ AMRAP</div></div>
-      <div class="card"><h2>About</h2><div class="small muted">GymOS v2.1 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
+        W5 = deload (auto-applied) · W6 = benchmarks: squat 8RM · DB press 10RM · chins AMRAP · RDL 5RM · 2km row · 12′ AMRAP</div></div>
+      <div class="card"><h2>About</h2><div class="small muted">GymOS v2.3 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
     $('scr-more').innerHTML = h;
   },
 
