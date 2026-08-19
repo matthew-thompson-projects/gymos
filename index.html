@@ -95,6 +95,9 @@ nav .ico{font-size:20px;line-height:1}
 #timerfull.show{display:flex}
 #tf-count{font-size:min(26vw,160px);font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums;margin:8px 0}
 #tf-count.go{font-size:min(15vw,90px)}
+#tf-round{font-size:17px;font-weight:700;margin-bottom:2px;min-height:22px}
+#timerfull.structured #tf-m15,#timerfull.structured #tf-p30{display:none}
+.tp-box{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px;background:var(--surface2)}
 /* sliders */
 .slider-row{margin-bottom:10px}
 .slider-row .spread{margin-bottom:2px}
@@ -161,11 +164,12 @@ svg text{fill:var(--text2);font-size:10px}
 
 <div id="timerfull">
   <div id="tf-label" class="small muted" style="letter-spacing:2px;font-weight:700">REST</div>
+  <div id="tf-round"></div>
   <div id="tf-count">0:00</div>
   <div id="tf-next" class="small" style="margin-bottom:18px"></div>
   <div class="row" style="gap:10px;justify-content:center">
-    <button onclick="App.adjTimer(-15)">−15s</button>
-    <button onclick="App.adjTimer(30)">+30s</button>
+    <button id="tf-m15" onclick="App.adjTimer(-15)">−15s</button>
+    <button id="tf-p30" onclick="App.adjTimer(30)">+30s</button>
     <button class="primary" onclick="App.stopTimer()">Skip / Done</button>
   </div>
   <div class="small muted" style="margin-top:20px;padding:10px" onclick="App.minimizeTimer()">Tap here to minimise</div>
@@ -188,7 +192,7 @@ svg text{fill:var(--text2);font-size:10px}
 
 <script>
 'use strict';
-/* ================= GymOS v2.3 — Block 8 "Rebuild & Burn" =================
+/* ================= GymOS v2.4 — Block 8 "Rebuild & Burn" =================
    Offline-first single-file app. All data in localStorage. Export weekly!  */
 </script>
 <script>
@@ -238,12 +242,12 @@ const SESSIONS = {
      {id:'gsq', name:'KB Goblet Squat', sets:3, reps:'12', startKg:24, step:4, rpe:'8', rest:0, ss:'A1', note:'Circuit A — squat → push press → row, no rest inside, 60s between rounds.', prev:'—', sub:'DB goblet squat'},
      {id:'pp',  name:'Barbell Push Press', sets:3, reps:'10', startKg:35, step:2.5, rpe:'8', rest:0, ss:'A2', note:'Leg drive, crisp lockout. Your 45kg strict press says start ~35. SHOULDER RULE: any signal >2/10 → landmine press instead, today.', prev:'Strict press 45kg×10', sub:'Landmine press / DB push press 17.5kg/hand'},
      {id:'hdr', name:'Heavy DB Row', sets:3, reps:'10/side', startKg:32.5, step:2.5, rpe:'8', rest:60, ss:'A3', note:'Last of the trio — 60s after, then back to squats.', prev:'—', sub:'Chest-supported row 32kg'},
-     {id:'fc',  name:"Farmer's Carry", sets:3, reps:'40 m', startKg:24, step:4, rpe:'8', rest:0, ss:'B1', note:'Carry medley — farmer → suitcase → front rack, no rest inside.', prev:'24kg/hand (last week)', sub:'Trap-bar carry'},
-     {id:'suc', name:'Suitcase Carry', sets:3, reps:'20 m/side', startKg:24, step:4, rpe:'8', rest:0, ss:'B2', note:'One hand — fight the side lean. Swap hands at 20 m.', prev:'—', sub:'Single-DB carry'},
-     {id:'frc', name:'Front-Rack Carry', sets:3, reps:'20 m', startKg:20, step:2.5, rpe:'8', rest:60, ss:'B3', note:'DBs racked at shoulders, ribs down. 60s after, back to farmers.', prev:'—', sub:'Double-KB rack carry'},
+     {id:'fc',  name:"Farmer's Carry", sets:3, reps:'40 m', startKg:48, step:8, rpe:'8', rest:0, ss:'B1', note:'Carry medley — farmer → suitcase → front rack, no rest inside. Log TOTAL load (2×24 = 48).', prev:'48kg total × ~60m (19 Aug — measure the route!)', sub:'Trap-bar carry'},
+     {id:'suc', name:'Suitcase Carry', sets:3, reps:'20 m/side', startKg:24, step:4, rpe:'8', rest:0, ss:'B2', note:'One hand — fight the side lean. Swap hands at 20 m. Log the single bell (24).', prev:'24kg (19 Aug)', sub:'Single-DB carry'},
+     {id:'frc', name:'Front-Rack Carry', sets:3, reps:'20 m', startKg:48, step:8, rpe:'8', rest:60, ss:'B3', note:'Racked at shoulders, ribs down. Log TOTAL load (2×24 = 48). 60s after, back to farmers.', prev:'48kg total (19 Aug)', sub:'Double-KB rack carry'},
      {id:'awr', name:'Ab Wheel Rollout', sets:3, reps:'8–10', startKg:0, step:1, rpe:'8', rest:0, ss:'C1', note:'From knees. Stop before the lower back sags — shorten the rollout rather than arch.', prev:'—', sub:'Plank walkout'},
      {id:'hlr', name:'Hanging Leg Raise', sets:3, reps:'8–12', startKg:0, step:1, rpe:'8', rest:60, ss:'C2', note:'Strict, no swing. Knee raises if straight legs break form.', prev:'Knee raises BW×10', sub:'Hanging knee raise'},
-     {id:'emom', name:'EMOM 8 — bike + burpees', sets:1, reps:'8 min', timed:480, startKg:0, step:1, rpe:'9', rest:0, note:'Odd minutes: 10 cal bike. Even minutes: 8 burpees. Whatever\'s left of the minute is your rest. Finisher — empty the tank.', prev:'—', sub:'Ski erg cals / row cals'},
+     {id:'emom', name:'EMOM 10 — bike + burpees', sets:1, reps:'10 min', timed:600, emom:['40s HARD on bike/ski — cals are your score','8 burpees'], startKg:0, step:1, rpe:'9', rest:0, note:'Odd minutes: 40 seconds hard on bike or ski — calories are the SCORE, not a target (machines vary; log your cals). Even minutes: 8 burpees. Baseline 19 Aug: ~5–6 cal per 30s.', prev:'19 Aug: 5–6 cal / 30s efforts', sub:'Row cals'},
     ]},
   lower2:{ title:'Lower 2 — Hinge focus', dur:'~60 min', type:'lift',
     warm:'Bike 4 min · cat-camel ×8 · glute bridge ×12 · hollow hold 2×20s · RDL bar ×8, 50kg ×5, 70kg ×3',
@@ -725,9 +729,10 @@ const App = {
         const fid = `c-${key}-${f.replace(/[^a-z0-9]/gi,'')}`;
         h += `<div style="margin-bottom:6px"><input id="${fid}" placeholder="${esc(f)} (optional)" value="${esc(rec.cardio[f]||'')}"></div>`;
       }
-      h += rec.done? `<button class="big" onclick="App.uncomplete('${key}')">Un-complete</button>${this.debriefHtml(key,rec)}`
-        : rec.skipped? `<button class="big" onclick="App.unskip('${key}')">Skipped — undo</button>`
-        : `<div class="row"><button class="primary" style="flex:1;padding:16px;font-size:16px" onclick="App.completeCardio('${key}')">Complete ✓</button>
+      h += this.timerPanel();
+      h += rec.done? `<button class="big" style="margin-top:10px" onclick="App.uncomplete('${key}')">Un-complete</button>${this.debriefHtml(key,rec)}`
+        : rec.skipped? `<button class="big" style="margin-top:10px" onclick="App.unskip('${key}')">Skipped — undo</button>`
+        : `<div class="row" style="margin-top:10px"><button class="primary" style="flex:1;padding:16px;font-size:16px" onclick="App.completeCardio('${key}')">Complete ✓</button>
            <button onclick="App.skipSession('${key}')" style="padding:16px">Didn't do it</button></div>`;
       return h+`</div>`;
     }
@@ -770,6 +775,7 @@ const App = {
         const rDefault = edSet? edSet.r : (lastSet? lastSet.r : (ex.timed || parseInt(ex.reps) || 10));
         h += `<div class="ex-body">
           ${ex.note?`<div class="small" style="margin-bottom:8px">📋 ${esc(ex.note)}</div>`:''}
+          ${ex.emom?`<button class="primary big" style="margin-bottom:10px" onclick="App.startEmomPreset('${ex.id}')">⏱ Start EMOM ${Math.round((ex.timed||600)/60)} — guided minutes</button>`:''}
           ${!S.mastered[ex.id]?(()=>{
             const vurl = VIDSHORT[ex.id]||VIDURL[ex.id];
             const vm = vurl? vurl.match(/(?:shorts\/|v=)([\w-]{6,})/) : null;
@@ -973,7 +979,8 @@ const App = {
     this.stopTimer(); this._endAt = Date.now() + sec*1000; this._goMode=false;
     $('tf-label').textContent='REST'; $('tf-count').classList.remove('go');
     $('tf-next').textContent = nextLabel? ('Next: '+nextLabel) : '';
-    $('timerfull').classList.add('show');
+    $('timerfull').classList.add('show'); $('timerfull').classList.remove('structured');
+    const rr=$('tf-round'); if(rr) rr.textContent='';
     this._tick();
   },
   _tick(){
@@ -985,13 +992,86 @@ const App = {
     if(left<=0){ this.stopTimer(); vibrate([200,100,200,100,400]); toast('Rest over — next set'); return }
     this.timer = setTimeout(()=>this._tick(), 250);
   },
-  adjTimer(d){ if(this._endAt){ this._endAt = Math.max(Date.now(), this._endAt + d*1000); this._tick() } },
+  adjTimer(d){ if(this._endAt){ this._endAt = Math.max(Date.now(), this._endAt + d*1000);
+    if(!this._sched) this._tick(); } },
+  beep(n, freq){ try{
+    const ctx = this._actx || (this._actx = new (window.AudioContext||window.webkitAudioContext)());
+    if(ctx.state==='suspended') ctx.resume();
+    for(let i=0;i<(n||1);i++){ const o=ctx.createOscillator(), g=ctx.createGain();
+      o.frequency.value=freq||880; o.connect(g); g.connect(ctx.destination);
+      const t=ctx.currentTime + i*0.28;
+      g.gain.setValueAtTime(0.25,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.22);
+      o.start(t); o.stop(t+0.24); }
+  }catch(e){} },
+  startStructured(name, phases){
+    this.stopTimer(); this._sched={name, phases}; this._phase=0;
+    this._endAt = Date.now() + phases[0].secs*1000;
+    $('timerfull').classList.add('show','structured');
+    $('tf-label').textContent = name; $('tf-count').classList.remove('go');
+    this.beep(1); this._tickS();
+  },
+  _tickS(){ if(this.timer) clearTimeout(this.timer);
+    const c=this._sched; if(!c || !this._endAt) return;
+    let left = Math.ceil((this._endAt - Date.now())/1000);
+    while(left<=0){
+      this._phase++;
+      if(this._phase >= c.phases.length){
+        this.beep(3,660); vibrate([300,120,300,120,600]); toast(c.name+' — DONE 💥');
+        this.stopTimer(); return }
+      this.beep(1); vibrate([150,80,150]);
+      this._endAt += c.phases[this._phase].secs*1000;
+      left = Math.ceil((this._endAt - Date.now())/1000);
+    }
+    const p = c.phases[this._phase], m=Math.floor(left/60), s=left%60;
+    $('tf-count').textContent = `${m}:${String(s).padStart(2,'0')}`;
+    $('tf-round').textContent = `${p.label} · ${this._phase+1}/${c.phases.length}`;
+    $('tf-next').textContent = c.phases[this._phase+1]? ('Next: '+c.phases[this._phase+1].label) : 'Last interval — empty it';
+    this.timer = setTimeout(()=>this._tickS(), 200);
+  },
+  startEmomPreset(exId){
+    let ex=null; for(const s of Object.values(SESSIONS)){ if(s.ex){ const f=s.ex.find(e=>e.id===exId); if(f){ex=f;break} } }
+    if(!ex||!ex.emom) return;
+    const mins = Math.round((ex.timed||600)/60);
+    const phases = Array.from({length:mins},(_,i)=>({secs:60, label:`Min ${i+1}: ${ex.emom[i%ex.emom.length]}`}));
+    this.startStructured(`EMOM ${mins}`, phases);
+  },
+  setTp(k,v){ this._tp = this._tp||{mode:'EMOM',min:10,amin:12,work:30,rest:30,rounds:10}; this._tp[k]=v; this.render() },
+  launchTimer(){
+    const d = this._tp||{mode:'EMOM',min:10,amin:12,work:30,rest:30,rounds:10};
+    const num = id => { const e=$(id); return e? (parseInt(e.value)||0) : 0 };
+    let phases=[], name='';
+    if(d.mode==='EMOM'){ const m=num('tp-min')||10; name=`EMOM ${m}`;
+      phases = Array.from({length:m},(_,i)=>({secs:60,label:`Min ${i+1} — GO`})) }
+    else if(d.mode==='AMRAP'){ const m=num('tp-amin')||12; name=`AMRAP ${m}`;
+      phases=[{secs:m*60,label:'AMRAP — count your rounds'}] }
+    else if(d.mode==='TABATA'){ name='TABATA 8×20/10';
+      phases=Array.from({length:8},()=>[{secs:20,label:'WORK'},{secs:10,label:'REST'}]).flat() }
+    else { const w=num('tp-work')||30, r=num('tp-rest')||30, n=num('tp-rounds')||10; name=`${n}× ${w}/${r}`;
+      phases=Array.from({length:n},()=>[{secs:w,label:'WORK'},{secs:r,label:'EASY'}]).flat() }
+    this.startStructured(name, phases);
+  },
+  timerPanel(){
+    const d = this._tp||{mode:'EMOM',min:10,amin:12,work:30,rest:30,rounds:10};
+    const modes=['EMOM','AMRAP','TABATA','INTERVALS'];
+    let fields='';
+    if(d.mode==='EMOM') fields=`<input type="number" id="tp-min" value="${d.min}" style="width:80px"> <span class="small muted">minutes</span>`;
+    else if(d.mode==='AMRAP') fields=`<input type="number" id="tp-amin" value="${d.amin}" style="width:80px"> <span class="small muted">minutes</span>`;
+    else if(d.mode==='TABATA') fields=`<span class="small muted">8 rounds · 20s work / 10s rest (classic)</span>`;
+    else fields=`<input type="number" id="tp-work" value="${d.work}" style="width:64px"> <span class="small muted">work</span>
+      <input type="number" id="tp-rest" value="${d.rest}" style="width:64px"> <span class="small muted">rest</span>
+      <input type="number" id="tp-rounds" value="${d.rounds}" style="width:64px"> <span class="small muted">rounds</span>`;
+    return `<div class="tp-box"><div class="small" style="margin-bottom:6px"><b>⏱ Conditioning timer</b></div>
+      <div class="row" style="flex-wrap:wrap;margin-bottom:8px">${modes.map(m=>`<button class="tiny ${d.mode===m?'primary':''}" onclick="App.setTp('mode','${m}')">${m}</button>`).join('')}</div>
+      <div class="row" style="flex-wrap:wrap;margin-bottom:8px">${fields}</div>
+      <button class="primary big" onclick="App.launchTimer()">▶ Start timer</button></div>`;
+  },
   minimizeTimer(){ $('timerfull').classList.remove('show');
     if(this._endAt) $('timerbar').classList.add('show');
   },
   expandTimer(){ if(this._endAt||this._goMode){ $('timerbar').classList.remove('show'); $('timerfull').classList.add('show') } },
-  stopTimer(){ if(this.timer) clearTimeout(this.timer); this.timer=null; this._endAt=null; this._goMode=false;
-    $('timerbar').classList.remove('show'); $('timerfull').classList.remove('show') },
+  stopTimer(){ if(this.timer) clearTimeout(this.timer); this.timer=null; this._endAt=null; this._goMode=false; this._sched=null;
+    $('timerbar').classList.remove('show'); $('timerfull').classList.remove('show','structured');
+    const r=$('tf-round'); if(r) r.textContent=''; },
 };
 </script>
 <script>
@@ -1175,7 +1255,7 @@ Object.assign(App, {
         Supplements: creatine 5g daily · whey to hit protein · caffeine &lt;400mg, none after 14:00 · vit D · omega-3<br><br>
         Pain rules: 0–2 continue · 3–4 modify (−20% or sub) · 5+ stop &amp; substitute<br><br>
         W5 = deload (auto-applied) · W6 = benchmarks: squat 8RM · DB press 10RM · chins AMRAP · RDL 5RM · 2km row · 12′ AMRAP</div></div>
-      <div class="card"><h2>About</h2><div class="small muted">GymOS v2.3 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
+      <div class="card"><h2>About</h2><div class="small muted">GymOS v2.4 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
     $('scr-more').innerHTML = h;
   },
 
