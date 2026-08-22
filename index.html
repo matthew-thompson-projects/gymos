@@ -192,7 +192,7 @@ svg text{fill:var(--text2);font-size:10px}
 
 <script>
 'use strict';
-/* ================= GymOS v2.4 — Block 8 "Rebuild & Burn" =================
+/* ================= GymOS v2.5 — Block 8 "Rebuild & Burn" =================
    Offline-first single-file app. All data in localStorage. Export weekly!  */
 </script>
 <script>
@@ -276,10 +276,20 @@ const SESSIONS = {
      {id:'ham', name:'Hammer Curl', sets:2, reps:'12', startKg:12.5, step:1.25, rpe:'8', rest:60, note:'From your Mar–Apr programme.', prev:'12.5kg (Mar)', sub:''},
      {id:'rvf', name:'Cable Reverse Fly', sets:2, reps:'15', startKg:10, step:1.25, rpe:'8', rest:60, note:'', prev:'10–12.5kg (2025)', sub:''},
     ]},
-  satdouble:{ title:'Saturday Double — Quality + HIIT', dur:'40–45 min', type:'cardio',
-    warm:'10 min easy build.',
-    desc:'PART 1 (~15–18 min, hard-but-repeatable):\nW1: 4 rds — 500m row · 10 burpees · 10 cal bike · rest 90s\nW2: 3 × 800m run (or 1000m row), rest 3 min\nW3: EMOM 16 — bike 12cal / 10 KB swings 24kg / 8 burpees / rest\nW4: repeat W1 — beat the time\nW5: DELOAD — 30 min Z2 only, no double\nW6: TEST — 2km row TT + 10 min rest + 12 min AMRAP (10 wall balls · 10 cal bike · 10 sit-ups)\n\nPART 2 — HIIT ≤12 min: W1–2: 10× 30s hard/30s easy (bike/ski) · W3–4: 8× 40/20. Then STOP.\n\nFinish: dead bugs 2×10/side + 5 min stretch.',
-    fields:['Part 1 result','HIIT done?','Avg HR','Notes'] },
+  satflex:{ title:'Lower 3 — Pump (Flex Saturday)', dur:'~40 min', type:'lift', second:'HIIT class straight after',
+    warm:'Bike 3 min easy · bodyweight squats ×15 · leg swings ×10/side',
+    ex:[
+     {id:'lp3', name:'Leg Press (volume)', sets:3, reps:'15', startKg:140, step:5, rpe:'8', rest:60, note:'Pump work — lighter than Thursday\'s heavy 150s. Smooth full-range reps, no lockout slam.', prev:'170kg×15 best · Thu heavy: 150kg×12', sub:'Goblet squat / Smith squat'},
+     {id:'lex', name:'Leg Extension (both legs)', sets:3, reps:'15', startKg:80, step:2, rpe:'8', rest:0, ss:'A1', note:'Superset with leg curl. Controlled — no knee snap at the top.', prev:'Unilateral: 50kg×8 (Jun)', sub:'Unilateral leg extension 50kg'},
+     {id:'slc3', name:'Seated Leg Curl', sets:3, reps:'12–15', startKg:82, step:2, rpe:'8', rest:60, ss:'A2', note:'From your old programme. Rest after the pair.', prev:'82kg (2025 blocks)', sub:'Lying leg curl'},
+     {id:'add2', name:'Hip Adduction Machine', sets:3, reps:'12', startKg:50, step:5, rpe:'8', rest:0, ss:'B1', note:'Superset with calves. Comfortable range — don\'t force the stretch.', prev:'— (new: pick a weight that\'s RPE 8 by rep 12)', sub:'Copenhagen plank, short lever'},
+     {id:'calf3', name:'Standing Calf Raise', sets:4, reps:'12–15', startKg:40, step:5, rpe:'8', rest:60, ss:'B2', note:'Pause at the bottom. Rest after the pair.', prev:'40kg (Thu)', sub:'Seated calf raise'},
+     {id:'rcr', name:'Rope Crunch', sets:3, reps:'12', startKg:40, step:2.5, rpe:'8', rest:60, note:'From your old programme — controlled, no swing: hips still, spine flexes.', prev:'40kg (2025 blocks)', sub:'Weighted sit-up / hanging knee raise'},
+    ]},
+  hiitclass:{ title:'HIIT Class', dur:'~45 min class', type:'cardio',
+    warm:'As per class.',
+    desc:'Your fixed Saturday class — straight after Lower 3. This is the week\'s intensity ceiling: go hard, the leg pump beforehand won\'t stop you.\nW5 (deload): skip the class or go 70% — your call, log it honestly.\nW6 (test week): replace Lower 3 with the benchmarks — 2km row TT, 10 min rest, then 12 min AMRAP (10 wall balls · 10 cal bike · 10 sit-ups) — then class only if you\'re fresh enough.',
+    fields:['Intensity 1–10','Standout efforts','Notes'] },
   hyrox:{ title:'Hyrox @ PowerX', dur:'~60 min class', type:'cardio',
     warm:'As per class.',
     desc:'Treat as conditioning, not a strength contest. Hard on engine stations (run/ski/row), a notch under max on sleds. Log intensity + standout stations.',
@@ -294,7 +304,7 @@ const SESSIONS = {
 // weekday (0=Sun..6=Sat) -> [morning, extra...]
 const WEEKPLAN = {
   1:['lower1','pilates'], 2:['upperpush','hyrox'], 3:['fullbody'],
-  4:['lower2'], 5:['upperpull','hyrox'], 6:['satdouble'], 0:['rest'],
+  4:['lower2'], 5:['upperpull','hyrox'], 6:['satflex','hiitclass'], 0:['rest'],
 };
 const DAYNAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 </script>
@@ -338,6 +348,8 @@ const VID = {
   fc:'farmers carry technique', spin:'incline treadmill walking form', calf:'standing calf raise form', calf2:'standing calf raise form',
   lr21:'dumbbell lateral raise drop set', pua:'push up form', bex:'45 degree back extension form',
   ham:'hammer curl form', rvf:'cable reverse fly rear delt',
+  lp3:'45 degree leg press technique', lex:'leg extension machine form', slc3:'seated leg curl technique',
+  add2:'hip adduction machine form', calf3:'standing calf raise form', rcr:'kneeling cable rope crunch form',
 };
 Object.assign(VID,{lpp:VID.lp,fpw:VID.fp,palw:VID.pal});
 
@@ -426,9 +438,13 @@ Object.assign(VIDSHORT,{
   awr:'https://www.youtube.com/shorts/YgIf-8yklUA',   // Squat University — Ab Wheel
   hlr:'https://www.youtube.com/shorts/2n4UqRIJyk4',   // Hanging Leg Raise
   emom:'https://www.youtube.com/shorts/zlYA1SENYG4',  // Burpee form
+  add2:'https://www.youtube.com/shorts/Rzj3BffTARY',  // Naomi Kong — Hip Adduction Machine (verified 22 Aug)
+  rcr:'https://www.youtube.com/shorts/l_2_6JI78_Q',   // Colossus Fitness — Cable Crunch (verified 22 Aug)
 });
 VIDSHORT.lpp=VIDSHORT.lp; VIDSHORT.fpw=VIDSHORT.fp; VIDSHORT.palw=VIDSHORT.pal;
 VIDSHORT.calf2=VIDSHORT.calf; VIDSHORT.lr21=VIDSHORT.lat; VIDSHORT.lp2=VIDSHORT.lp; VIDURL.lp2=VIDURL.lp;
+VIDSHORT.lp3=VIDSHORT.lp; VIDSHORT.lex=VIDSHORT.ule; VIDSHORT.slc3=VIDSHORT.slc; VIDSHORT.calf3=VIDSHORT.calf;
+VIDURL.lp3=VIDURL.lp; VIDURL.lex=VIDURL.ule; VIDURL.slc3=VIDURL.slc;
 VIDURL.lpp=VIDURL.lp; VIDURL.fpw=VIDURL.fp; VIDURL.palw=VIDURL.pal;
 
 /* ---------- Utils ---------- */
@@ -436,6 +452,16 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function todayStr(d){ d = d||new Date(); const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}` }
 function fmtDate(s){ const d=new Date(s+'T12:00'); return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}) }
+function planFor(d){ const wd=new Date(d+'T12:00').getDay(); const p=WEEKPLAN[wd].slice();
+  if(wd===6 && S.satswap && S.satswap[d] && SESSIONS[S.satswap[d]] && SESSIONS[S.satswap[d]].type==='lift') p[0]=S.satswap[d];
+  return p }
+function missedLifts(satDate){ // Mon–Fri of the same week: planned lifts with nothing logged
+  const out=[]; for(let i=1;i<=5;i++){ const dt=new Date(satDate+'T12:00'); dt.setDate(dt.getDate()-(6-i)); const dd=todayStr(dt);
+    for(const k of WEEKPLAN[i]){ const ses=SESSIONS[k]; if(ses.type!=='lift') continue;
+      const rec=(S.sessions[dd]||{})[k];
+      const hasSets = rec && rec.sets && Object.values(rec.sets).some(a=>a&&a.length);
+      if(!(rec&&rec.done) && !hasSets) out.push({d:dd,key:k}); } }
+  return out }
 function blockWeek(dateStr){
   const start = new Date(BLOCK.start+'T00:00'); const d = new Date(dateStr+'T00:00');
   const diff = Math.floor((d-start)/86400000);
@@ -545,7 +571,7 @@ const App = {
   /* ===== TODAY ===== */
   render_today(){
     const d = todayStr(); const wd = new Date().getDay(); const week = blockWeek(d);
-    const plan = WEEKPLAN[wd]; const main = SESSIONS[plan[0]];
+    const plan = planFor(d); const main = SESSIONS[plan[0]];
     const extras = plan.slice(1).map(k=>SESSIONS[k]);
     const rd = S.readiness[d];
     const n = nut(d); const kcalT = dayType(d)==='rest'?BLOCK.kcal.rest:BLOCK.kcal.train;
@@ -695,11 +721,16 @@ const App = {
   shiftDay(n){ const dt = new Date(this.viewDate+'T12:00'); dt.setDate(dt.getDate()+n);
     this.viewDate = todayStr(dt); this.openEx=null; this.render() },
 
+  satSwapSet(key){ if(!S.satswap) S.satswap={}; S.satswap[this.viewDate]=key; store.save();
+    this.openEx=null; toast('Make-up session loaded — logs count as this week\'s session'); this.render() },
+  satSwapClear(){ if(S.satswap){ delete S.satswap[this.viewDate]; store.save() } this.openEx=null; this.render() },
+
   render_train(){
     if(!this.viewDate) this.viewDate = todayStr();
     const d = this.viewDate; const isToday = d===todayStr();
     const wd = new Date(d+'T12:00').getDay(); const week = blockWeek(d);
-    const plan = WEEKPLAN[wd]; const rd = isToday? S.readiness[d] : null;
+    const plan = planFor(d); const rd = isToday? S.readiness[d] : null;
+    const swapped = wd===6 && S.satswap && S.satswap[d];
     let h = `<div class="spread" style="margin-bottom:4px"><h1>Train</h1>
       <div class="row"><button class="tiny" onclick="App.shiftDay(-1)">‹</button>
       ${isToday?'':'<button class="tiny" onclick="App.goTrain()">Today</button>'}
@@ -712,6 +743,19 @@ const App = {
     }
     if(rd && rd.score<50){
       h += `<div class="banner warn"><b>Recovery priority.</b> Recommendation: swap today for 20–30 min easy movement + mobility, or full rest. The plan will keep — don't chase it tomorrow.</div>`;
+    }
+    if(wd===6 && week>=1 && week<=6){
+      if(swapped){
+        h += `<div class="banner info"><div class="spread"><span>Make-up session: <b>${esc(SESSIONS[S.satswap[d]].title)}</b> replaces Lower 3 today.</span>
+          <button class="tiny" onclick="App.satSwapClear()">Back to Lower 3</button></div></div>`;
+      } else {
+        const miss = missedLifts(d).filter(m=>m.key!=='satflex');
+        if(miss.length){
+          h += `<div class="banner warn"><b>Missed this week:</b> ${miss.map(m=>esc(SESSIONS[m.key].title)).join(', ')}.<br>
+            <span class="small">Flex Saturday: make one up instead of the leg pump — or just do Lower 3.</span>
+            <div class="row" style="margin-top:6px;flex-wrap:wrap">${miss.map(m=>`<button class="tiny" onclick="App.satSwapSet('${m.key}')">Make up ${esc(SESSIONS[m.key].title)}</button>`).join('')}</div></div>`;
+        }
+      }
     }
     for(const key of plan){ h += this.sessionCard(key, d, week) }
     $('scr-train').innerHTML = h;
@@ -1201,7 +1245,7 @@ Object.assign(App, {
         <button class="primary big" style="margin-top:10px" onclick="App.saveProfile()">Save profile</button></div>
       <div class="card"><h2>Current plan</h2><div class="small">
         <b>Block 8 — Rebuild &amp; Burn</b> · 10 Aug – 20 Sep 2026 · week ${Math.min(Math.max(blockWeek(todayStr()),1),6)} of 6<br>
-        Goal: ${esc(p.goal||'Weight loss')} · 5 lifts + Hyrox ×2 + Saturday double<br>
+        Goal: ${esc(p.goal||'Weight loss')} · 6 lifts + Hyrox ×2 + Sat HIIT class<br>
         <span class="muted">A plan library with goal-based generation (Weight loss / Strength / Functional / Abs) is specced for the production app. This plan was custom-built from your 14-month history — your saved goal feeds Block 9's design.</span></div></div>
       <div class="card"><h2>How GymOS works</h2><div class="small">
         <b>Today</b> is your dashboard: readiness check, today's session, nutrition and weight. Do readiness first each morning — it drives the day's recommendation.<br><br>
@@ -1250,12 +1294,12 @@ Object.assign(App, {
         <hr><button class="big" style="color:var(--bad)" onclick="App.resetData()">Reset all data</button></div>
       <div class="card"><h2>Block 8 — key numbers</h2>
         <div class="small">
-        Training: Mon Lower 1 (+Pilates pm) · Tue Upper Push (+Hyrox) · Wed Z2 · Thu Lower 2 · Fri Upper Pull (+Hyrox) · Sat Double · Sun rest<br><br>
+        Training: Mon Lower 1 (+Pilates pm) · Tue Upper Push (+Hyrox) · Wed Full Body · Thu Lower 2 · Fri Upper Pull (+Hyrox) · Sat Lower 3 pump (or make-up) + HIIT class · Sun rest<br><br>
         Nutrition: ${BLOCK.kcal.train} kcal train / ${BLOCK.kcal.rest} rest · ${BLOCK.protein}g protein · 38g fibre · 3–3.5L water<br><br>
         Supplements: creatine 5g daily · whey to hit protein · caffeine &lt;400mg, none after 14:00 · vit D · omega-3<br><br>
         Pain rules: 0–2 continue · 3–4 modify (−20% or sub) · 5+ stop &amp; substitute<br><br>
         W5 = deload (auto-applied) · W6 = benchmarks: squat 8RM · DB press 10RM · chins AMRAP · RDL 5RM · 2km row · 12′ AMRAP</div></div>
-      <div class="card"><h2>About</h2><div class="small muted">GymOS v2.4 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
+      <div class="card"><h2>About</h2><div class="small muted">GymOS v2.5 — Block 8 vertical slice. Offline, all data on this device. Production app (React Native, iOS + Android) in development. Coach: Claude.</div></div>`;
     $('scr-more').innerHTML = h;
   },
 
